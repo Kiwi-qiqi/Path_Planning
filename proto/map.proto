@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+package interface;
+
+
+// Points in the two-dimensional plane
+message Point2D {
+    optional double x = 1 [default = 0.0];
+    optional double y = 2 [default = 0.0];
+  }
+
+// Construct a map based on the environment, which is composed of a series of points.
+message Map {
+    repeated Point2D pose = 1;
+}
+
