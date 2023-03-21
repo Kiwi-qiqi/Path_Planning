@@ -58,8 +58,11 @@ boundary = set()
 dragging_start = False
 dragging_end = False
 
-# 初始化鼠标滑动选中单元格作为障碍物的变量
+# 初始化鼠标滑动选中单元格作为障碍物
 drawing_obstacle = False
+
+# 初始化鼠标滑动选中单元格实现障碍物的删除
+delete_obstacle = False
 
 # 初始化障碍物单元格数据
 obstacles = set()
@@ -126,6 +129,8 @@ def validate_verify(valid_range, mouse_pos):
     return mouse_pos
 
 
+
+
 # Main game loop
 # 主游戏循环
 running = True
@@ -170,14 +175,17 @@ while running:
 
                 # 检查鼠标是否在自由区域
                 elif (mouse_pos[0], mouse_pos[1]) not in boundary:
-                    drawing_obstacle = True
                     if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
                         obstacles.add((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
+                        drawing_obstacle = True
+
                     else:
                         obstacles.remove((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
+                        delete_obstacle = True
 
-                
-            # print(drawing_obstacle)
+
+                # elif (mouse_pos[0], mouse_pos[1]) in obstacles:
+
 
 
         # 当鼠标抬起时
@@ -195,6 +203,9 @@ while running:
 
                 # 停止选择障碍物
                 drawing_obstacle = False
+
+                # 停止删除障碍物
+                delete_obstacle = False
             
 
         # 当鼠标移动时
@@ -209,35 +220,43 @@ while running:
                 # Get the position of the mouse
                 # 获取鼠标位置
                 mouse_pos = pygame.mouse.get_pos()
-                mouse_pos = validate_verify(valid_range, mouse_pos)
-                if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point:
+                # mouse_pos = validate_verify(valid_range, mouse_pos)
+                if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point and \
+                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
+                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
                     # Update the position of the start point
                     # 更新起点位置
                     start_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
             
             elif dragging_end:
                 mouse_pos = pygame.mouse.get_pos()
-                mouse_pos = validate_verify(valid_range, mouse_pos)
-                if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point:
+                # mouse_pos = validate_verify(valid_range, mouse_pos)
+                if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and \
+                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
+                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
                     # Update the position of the end point
                     # 更新终点位置
                     end_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
 
+
             elif drawing_obstacle:
-                # print("Select cell for obstacle ")
+                # 鼠标滑动选择空白区域作为障碍物
                 mouse_pos = pygame.mouse.get_pos()
                 if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
                    ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles and \
                    (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and\
                    (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point:
-                    # print("Add the cell to obstacle")
                     obstacles.add((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
-                    # print(obstacles)
 
-                # elif ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) in obstacles:
-                #     # print("Delete the cell from obstacle")
-                #     obstacles.remove((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
 
+            elif delete_obstacle:
+                # 鼠标滑动将已有障碍物取消
+                mouse_pos = pygame.mouse.get_pos()
+                if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
+                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) in obstacles and \
+                   (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and\
+                   (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point:
+                    obstacles.remove((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
             
         draw_grid()
         record_data()

@@ -1,131 +1,104 @@
-import os
 import pygame
+import sys
 
-# Define color constants
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-GRAY = (64, 64, 64)
-BLUE = (0, 0, 255)
+WINDOW_WIDTH = 640
+WINDOW_HEIGHT = 480
+BG_COLOR = (255, 255, 255)
 
-# Set the size of each grid cell in pixels
-cell_size = 25
+def draw_button(label, x, y, w, h, color):
+    font = pygame.font.Font(None, 24)
+    text = font.render(label, True, (0, 0, 0))
+    rect = pygame.Rect(x, y, w, h)
+    pygame.draw.rect(screen, color, rect)
+    screen.blit(text, (x + w // 2 - text.get_width() // 2, y + h // 2 - text.get_height() // 2))
+    return rect
 
-# Set the dimensions of the screen
-screen_width = 1000
-screen_height = 800
-
-# Set the dimensions of the grid
-grid_width = screen_width // cell_size
-grid_height = screen_height // cell_size
-
-# Initialize Pygame
 pygame.init()
+pygame.display.set_caption("Pygame Interactive Interface")
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
-# Set the screen size
-screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+button1_rect = draw_button("Button 1", 50, 50, 100, 50, (255, 0, 0))
+button2_rect = draw_button("Button 2", 50, 120, 100, 50, (0, 255, 0))
 
-# Set the background color to white
-background_color = WHITE
+window_pos = (200, 50)
+window_surface = pygame.Surface((200, 200))
+window_surface.fill((200, 200, 200))
+screen.blit(window_surface, window_pos)
 
-# Set the grid color to black
-grid_color = BLACK
+button_pos = {
+    "Option 1": (210, 70),
+    "Option 2": (210, 140),
+    "Option 3": (210, 210),
+}
 
-# Initialize the start and end cells
-start_point = (5, 5)
-end_point = (grid_width - 6, grid_height - 6)
+button_offsets = {
+    "Option 3": (10, 10),
+    "Option 4": (10, 70),
+    "Option 5": (10, 130)
+}
+button3_rect = draw_button("Option 1", *button_pos["Option 1"], 100, 50, (0, 0, 255))
+button4_rect = draw_button("Option 2", *button_pos["Option 2"], 100, 50, (255, 255, 0))
+button5_rect = draw_button("Option 3", *button_pos["Option 3"], 100, 50, (255, 0, 255))
 
-start_color = GREEN
-end_color = RED
+dragging_window = False
+dragging_button = None
 
-# Initialize variables for dragging the start and end cells
-dragging_start = False
-dragging_end = False
-
-# Update the display
-pygame.display.update()
-
-# Main game loop
-running = True
-while running:
-    # Handle events
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.VIDEORESIZE:
-            screen_width = event.w
-            screen_height = event.h
-            grid_width = screen_width // cell_size
-            grid_height = screen_height // cell_size
-            screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
-            screen.fill(background_color)
-
+            pygame.quit()
+            sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Check if left mouse button was pressed
             if event.button == 1:
-                mouse_pos = pygame.mouse.get_pos()
-                
-                # Check if the mouse is on the start point
-                if (mouse_pos[0] >= start_point[0] * cell_size and mouse_pos[0] < (start_point[0] + 1) * cell_size
-                    and mouse_pos[1] >= start_point[1] * cell_size and mouse_pos[1] < (start_point[1] + 1) * cell_size):
-                    # Start dragging the start point
-                    dragging_start = True
-                
-                # Check if the mouse is on the end point
-                elif (mouse_pos[0] >= end_point[0] * cell_size and mouse_pos[0] < (end_point[0] + 1) * cell_size
-                      and mouse_pos[1] >= end_point[1] * cell_size and mouse_pos[1] < (end_point[1] + 1) * cell_size):
-                    # Start dragging the end point
-                    dragging_end = True
-
-
+                if button1_rect.collidepoint(event.pos):
+                    print("Button 1 clicked")
+                elif button2_rect.collidepoint(event.pos):
+                    print("Button 2 clicked")
+                elif button3_rect.collidepoint(event.pos):
+                    print("Option 1 selected")
+                elif button4_rect.collidepoint(event.pos):
+                    print("Option 2 selected")
+                elif button5_rect.collidepoint(event.pos):
+                    print("Option 3 selected")
+                elif event.pos[0] >= window_pos[0] and event.pos[0] <= window_pos[0] + window_surface.get_width() and event.pos[1] >= window_pos[1] and event.pos[1] <= window_pos[1] + window_surface.get_height():
+                    dragging_window = True
+                    mouse_offset = (event.pos[0] - window_pos[0], event.pos[1] - window_pos[1])
+                elif event.pos[0] >= button_pos["Option 1"][0] and event.pos[0] <= button_pos["Option 1"][0] + 100 and event.pos[1] >= button_pos["Option 1"][1] and event.pos[1] <= button_pos["Option 1"][1] + 50:
+                    dragging_button = "Option 1"
+                    mouse_offset = (event.pos[0] - button_pos["Option 1"][0], event.pos[1] - button_pos["Option 1"][1])
+                elif event.pos[0] >= button_pos["Option 2"][0] and event.pos[0] <= button_pos["Option 2"][0] + 100 and event.pos[1] >= button_pos["Option 2"][1] and event.pos[1] <= button_pos["Option 2"][1] + 50:
+                    dragging_button = "Option 2"
+                    mouse_offset = (event.pos[0] - button_pos["Option 2"][0], event.pos[1] - button_pos["Option 2"][1])
+                elif event.pos[0] >= button_pos["Option 3"][0] and event.pos[0] <= button_pos["Option 3"][0] + 100 and event.pos[1] >= button_pos["Option 3"][1] and event.pos[1] <= button_pos["Option 3"][1] + 50:
+                    dragging_button = "Option 3"
+                    mouse_offset = (event.pos[0] - button_pos["Option 3"][0], event.pos[1] - button_pos["Option 3"][1])
+        
         elif event.type == pygame.MOUSEBUTTONUP:
-            # Check if left mouse button was released
             if event.button == 1:
-                # Stop dragging the start point
-                dragging_start = False
-                
-                # Stop dragging the end point
-                dragging_end = False
-
+                dragging_window = False
+                dragging_button = None
 
         elif event.type == pygame.MOUSEMOTION:
-            # Check if the mouse is being dragged
-            if dragging_start:
-                # Get the position of the mouse
-                mouse_pos = pygame.mouse.get_pos()
-                
-                # Update the position of the start point
-                start_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
-            
-            elif dragging_end:
-                # Get the position of the mouse
-                mouse_pos = pygame.mouse.get_pos()
-                
-                # Update the position of the end point
-                end_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
+            if dragging_window:
+                window_pos = (event.pos[0] - mouse_offset[0], event.pos[1] - mouse_offset[1])
+                # 更新按钮的位置
+                for button, offset in button_offsets.items():
+                    button_pos[button] = (window_pos[0] + offset[0], window_pos[1] + offset[1])
 
+            elif dragging_button:
+                button_pos[dragging_button] = (event.pos[0] - mouse_offset[0], event.pos[1] - mouse_offset[1])
 
-        # Draw the grid
-        for i in range(grid_width):
-            for j in range(grid_height):
-                rect = pygame.Rect(i * cell_size, j * cell_size, cell_size - 1, cell_size - 1)
-                if i == 0 or j == 0 or i == grid_width - 1 or j == grid_height - 1:
-                    pygame.draw.rect(screen, GRAY, rect, 0)
+    screen.fill(BG_COLOR)
+    pygame.draw.rect(screen, (30, 30, 30), button1_rect, 2)
+    pygame.draw.rect(screen, (50, 50, 50), button2_rect, 2)
 
-                elif (i, j) == start_point:
-                    start_rect = pygame.Rect(start_point[0] * cell_size, start_point[1] * cell_size, cell_size - 1, cell_size - 1)
-                    pygame.draw.rect(screen, start_color, start_rect, 0)
+    window_surface.fill((200, 200, 200))
+    pygame.draw.rect(window_surface, (0, 0, 0), button3_rect, 2)
+    pygame.draw.rect(window_surface, (0, 0, 0), button4_rect, 2)
+    pygame.draw.rect(window_surface, (0, 0, 0), button5_rect, 2)
+    screen.blit(window_surface, window_pos)
 
-                elif (i, j) == end_point:
-                    start_rect = pygame.Rect(end_point[0] * cell_size, end_point[1] * cell_size, cell_size - 1, cell_size - 1)
-                    pygame.draw.rect(screen, end_color, start_rect, 0)
-                else:
-                    pygame.draw.rect(screen, (220, 220, 220), rect, 0)
+    for label, pos in button_pos.items():
+        draw_button(label, *pos, 100, 50, (255, 255, 255))
 
-
-        # Update the display
-        pygame.display.update()
-
-# Quit Pygame
-pygame.quit()
+    pygame.display.flip()
