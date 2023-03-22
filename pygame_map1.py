@@ -1,16 +1,7 @@
 import os
 import pygame
 
-# Define color constants
-# 定义颜色常量
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-GRAY = (64, 64, 64)
-BLUE = (0, 0, 255)
-Spcify = (190, 190, 190)
-Obstacle = (50, 50, 50)
+from Color import *
 
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
@@ -36,19 +27,19 @@ screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE
 
 # Set the background color to white
 # 将背景色设置为白色
-background_color = WHITE
+background_color = MIDNIGHT_BLACK
 
 # Set the grid color to black
 # 将网格颜色设置为黑色
-grid_color = BLACK
+grid_color = COAL_BLACK
 
 # Initialize the start and end cells
 # 初始化起点和终点单元格
 start_point = (5, 5)
 end_point = (grid_width - 6, grid_height - 6)
 
-start_color = GREEN
-end_color = RED
+start_color = VIRIDIAN_GREEN
+end_color = FIREBRICK_RED
 
 # 初始化列表记录地图的边框单元格数据
 boundary = set()
@@ -66,26 +57,23 @@ delete_obstacle = False
 
 # 初始化障碍物单元格数据
 obstacles = set()
-obstalce_color = (50, 50, 50)
+obstalce_color = JET_BLACK
 
+# 设置有效范围
+valid_range = {'width':(1, grid_width - 2), 'height':(1, grid_height - 2)}
 
-def record_data():
-    boundary.clear()
-    # 记录网格地图边界, 起点, 终点的数据
-    for i in range(grid_width):
-        for j in range(grid_height):
-            if i == 0 or j == 0 or i == grid_width - 1 or j == grid_height - 1:
-                boundary.add((i, j))
 
 def draw_grid():
     # Draw the grid
     # 绘制网格
+    boundary.clear()
     for i in range(grid_width):
         for j in range(grid_height):
             # 绘制边框
             rect = pygame.Rect(i * cell_size, j * cell_size, cell_size - 1, cell_size - 1)
             if i == 0 or j == 0 or i == grid_width - 1 or j == grid_height - 1:
-                pygame.draw.rect(screen, GRAY, rect, 0)
+                boundary.add((i, j))
+                pygame.draw.rect(screen, GRAPHITE, rect, 0)
 
             # 绘制起点单元格
             elif (i, j) == start_point:
@@ -104,7 +92,7 @@ def draw_grid():
 
             # 绘制空白单元格
             else:
-                pygame.draw.rect(screen, Spcify, rect, 0)
+                pygame.draw.rect(screen, PEACH_PUFF, rect, 0)
             
 
 
@@ -129,7 +117,76 @@ def validate_verify(valid_range, mouse_pos):
     return mouse_pos
 
 
+def point_verify(point, valid_range):
+    """
+    判断起点or终点or障碍物点是否处在当前窗口的有效区域内
+    如果超出区间, 则返回True
+    未超出区间, 返回False
+    """
+    if point[0] < valid_range['width'][0] or \
+       point[0] > valid_range['width'][1] or \
+       point[1] < valid_range['height'][0] or \
+       point[1] > valid_range['height'][1]:
+        # 如果point不在有效区域
+        return True
+    else:
+        return False
 
+
+
+def obstacles_modify(obstacles, valid_range):
+    """
+    由于窗口界面的变化, 当窗口缩小时, 可能导致障碍物超出了当前窗口界面
+    因此当窗口大小变化时, 对障碍物是否在窗口有效范围中进行判断
+    将超过有效范围的障碍物单元格进行删除
+    当界面恢复时, 原有障碍物的范围不会恢复
+    """
+    # print(valid_range['width'][1], valid_range['height'][1])
+    new_obstacles = set()
+    for obstacle in obstacles:
+        if point_verify(obstacle, valid_range):
+            continue
+        else:
+            new_obstacles.add(obstacle)
+    obstacles = new_obstacles
+    return obstacles
+
+
+def reinitialize_start_end_point(start_point, end_point, obstacles, grid_width, grid_height):
+    """
+    当窗口缩放时, 按照固定更新模式会导致起点或终点更新与障碍物位置发生重合
+    因此需要根据地图环境以及障碍物信息, 对起点与终点网格位置进行更新
+    更新策略：
+        先给出默认的初始化点, 如果这个点不满足要求, 则
+        如果是起点, 则从左侧开始遍历点
+        如果是终点, 则从右侧开始遍历点
+        一列一列的进行查找可行点作为起点
+    """
+    # print("re-initializing start and end point")
+    if point_verify(start_point, valid_range):
+        # 如果超出区域, 则重置起点
+        start_point = (5, 5)
+    if point_verify(end_point, valid_range):
+        # 如果超出区域, 则重置终点
+        end_point = (grid_width - 6, grid_height - 6)
+
+    if start_point in obstacles:
+        for i in range(grid_width):
+            for j in range(grid_height):
+                if (i, j) not in obstacles:
+                    start_point = (i, j)
+                else:
+                    break
+    
+    if end_point in obstacles:
+        # 反向遍历
+        for i in reversed(range(grid_width)):
+            for j in reversed(range(grid_height)):
+                if (i, j) not in obstacles:
+                    end_point = (i, j)
+                else:
+                    break
+    return start_point, end_point
 
 # Main game loop
 # 主游戏循环
@@ -138,6 +195,8 @@ while running:
     # Handle events
     # 处理事件
     for event in pygame.event.get():
+        # 设置有效范围
+
         if event.type == pygame.QUIT:
             running = False
         
@@ -147,6 +206,15 @@ while running:
             screen_height = event.h
             grid_width = screen_width // cell_size
             grid_height = screen_height // cell_size
+            valid_range = {'width':(1, grid_width - 2), 'height':(1, grid_height - 2)}
+
+            obstacles = obstacles_modify(obstacles, valid_range)
+            # obstacles.clear()
+
+            # Initialize the start and end cells
+            # 初始化起点和终点单元格
+            start_point, end_point = reinitialize_start_end_point(start_point, end_point, obstacles, grid_width, grid_height)
+
             screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
             screen.fill(background_color)
 
@@ -156,6 +224,7 @@ while running:
             # 检查是否按下了左键
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
+                mouse_pos = validate_verify(valid_range, mouse_pos)
                 
                 # Check if the mouse is on the start point
                 # 检查鼠标是否在起点上
@@ -176,15 +245,14 @@ while running:
                 # 检查鼠标是否在自由区域
                 elif (mouse_pos[0], mouse_pos[1]) not in boundary:
                     if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
+                        # 如果当前单元格不在障碍物集合中, 则将其加入集合中
                         obstacles.add((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
                         drawing_obstacle = True
 
                     else:
+                        # 如果当前单元格为障碍物, 则将其从障碍物集合删除
                         obstacles.remove((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
                         delete_obstacle = True
-
-
-                # elif (mouse_pos[0], mouse_pos[1]) in obstacles:
 
 
 
@@ -213,16 +281,12 @@ while running:
             # Check if the mouse is being dragged
             # 检查是否在拖拽
 
-            # 设置有效范围
-            valid_range = {'width':(1, grid_width - 2), 'height':(1, grid_height - 2)}
-
             if dragging_start:
                 # Get the position of the mouse
                 # 获取鼠标位置
                 mouse_pos = pygame.mouse.get_pos()
-                # mouse_pos = validate_verify(valid_range, mouse_pos)
+                mouse_pos = validate_verify(valid_range, mouse_pos)
                 if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point and \
-                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
                    ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
                     # Update the position of the start point
                     # 更新起点位置
@@ -230,18 +294,21 @@ while running:
             
             elif dragging_end:
                 mouse_pos = pygame.mouse.get_pos()
-                # mouse_pos = validate_verify(valid_range, mouse_pos)
+                mouse_pos = validate_verify(valid_range, mouse_pos)
                 if (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and \
-                   ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
                    ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles:
                     # Update the position of the end point
                     # 更新终点位置
                     end_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
+                    # print(start_point)
+                    # print(end_point)
 
 
             elif drawing_obstacle:
                 # 鼠标滑动选择空白区域作为障碍物
                 mouse_pos = pygame.mouse.get_pos()
+                mouse_pos = validate_verify(valid_range, mouse_pos)
+
                 if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
                    ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in obstacles and \
                    (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and\
@@ -252,14 +319,15 @@ while running:
             elif delete_obstacle:
                 # 鼠标滑动将已有障碍物取消
                 mouse_pos = pygame.mouse.get_pos()
+                mouse_pos = validate_verify(valid_range, mouse_pos)
+
                 if ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) not in boundary and \
                    ((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)) in obstacles and \
                    (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != start_point and\
                    (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size) != end_point:
                     obstacles.remove((mouse_pos[0] // cell_size, mouse_pos[1] // cell_size))
-            
+        
         draw_grid()
-        record_data()
 
         # Update the display
         pygame.display.update()

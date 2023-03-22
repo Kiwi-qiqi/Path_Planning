@@ -3,6 +3,11 @@ import pygame
 
 from Color import *
 
+class GripMap():
+    def __init__(self):
+        self.cell_size = 25
+        self.screen_width = 1000
+
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
 cell_size = 25
@@ -117,6 +122,23 @@ def validate_verify(valid_range, mouse_pos):
     return mouse_pos
 
 
+def point_verify(point, valid_range):
+    """
+    判断起点or终点or障碍物点是否处在当前窗口的有效区域内
+    如果超出区间, 则返回True
+    未超出区间, 返回False
+    """
+    if point[0] < valid_range['width'][0] or \
+       point[0] > valid_range['width'][1] or \
+       point[1] < valid_range['height'][0] or \
+       point[1] > valid_range['height'][1]:
+        # 如果point不在有效区域
+        return True
+    else:
+        return False
+
+
+
 def obstacles_modify(obstacles, valid_range):
     """
     由于窗口界面的变化, 当窗口缩小时, 可能导致障碍物超出了当前窗口界面
@@ -127,10 +149,7 @@ def obstacles_modify(obstacles, valid_range):
     # print(valid_range['width'][1], valid_range['height'][1])
     new_obstacles = set()
     for obstacle in obstacles:
-        if obstacle[0] < valid_range['width'][0] or \
-           obstacle[0] > valid_range['width'][1] or \
-           obstacle[1] < valid_range['height'][0] or \
-           obstacle[1] > valid_range['height'][1]:
+        if point_verify(obstacle, valid_range):
             continue
         else:
             new_obstacles.add(obstacle)
@@ -148,9 +167,14 @@ def reinitialize_start_end_point(start_point, end_point, obstacles, grid_width, 
         如果是终点, 则从右侧开始遍历点
         一列一列的进行查找可行点作为起点
     """
-    print("re-initializing start and end point")
-    start_point = (5, 5)
-    end_point = (grid_width - 6, grid_height - 6)
+    # print("re-initializing start and end point")
+    if point_verify(start_point, valid_range):
+        # 如果超出区域, 则重置起点
+        start_point = (5, 5)
+    if point_verify(end_point, valid_range):
+        # 如果超出区域, 则重置终点
+        end_point = (grid_width - 6, grid_height - 6)
+
     if start_point in obstacles:
         for i in range(grid_width):
             for j in range(grid_height):
@@ -160,6 +184,7 @@ def reinitialize_start_end_point(start_point, end_point, obstacles, grid_width, 
                     break
     
     if end_point in obstacles:
+        # 反向遍历
         for i in reversed(range(grid_width)):
             for j in reversed(range(grid_height)):
                 if (i, j) not in obstacles:
@@ -281,7 +306,7 @@ while running:
                     # 更新终点位置
                     end_point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
                     # print(start_point)
-                    print(end_point)
+                    # print(end_point)
 
 
             elif drawing_obstacle:
