@@ -19,18 +19,21 @@ grid_height = screen_height // cell_size
 
 # 创建小窗口界面并设置大小
 panel_width = 300
-panel_height = 100
+panel_height = 70
 panel = pygame.Surface((panel_width, panel_height))
+# panel.fill(TRANSPARENT_NE)
 panel.fill(TRANSPARENT_BLACK)
+# panel_rect是以(0,0)为左上角顶点绘制矩形框
 panel_rect = panel.get_rect()
 
 # 将小窗口放在大窗口右侧中心位置
-panel_rect.center = (screen_width, screen_height // 2)
+# panel_rect.center是panel中心的坐标
+panel_rect.center = (screen_width // 2, screen_height - panel_height)
 
-# 创建按钮并设置大小
+# 创建按钮并设置大小, 并横向均匀在panel上
 button_width = 80
 button_height = 30
-+
+
 button_padding = (panel_width - button_width * 3) // 4
 button_y = (panel_height - button_height) // 2
 button1_rect = pygame.Rect(button_padding, button_y, button_width, button_height)
@@ -50,6 +53,7 @@ screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE
 # Set the background color to white
 # 将背景色设置为白色
 background_color = MIDNIGHT_BLACK
+screen.fill(background_color)
 
 # Set the grid color to black
 # 将网格颜色设置为黑色
@@ -270,7 +274,18 @@ while running:
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
-                
+                # 判断是否点击到小窗口
+                if panel_rect.collidepoint(event.pos):
+                    dragging_panel = True
+                    drawing_obstacle = False
+                    delete_obstacle  = False
+                    mouse_x, mouse_y = event.pos
+                    # 计算鼠标点击当前位置相对panel中心位置移动了多少
+                    # 后续根据偏置量重新得到panel的位置
+                    offset_x = mouse_x - panel_rect.x
+                    offset_y = mouse_y - panel_rect.y
+                    continue
+
                 # Check if the mouse is on the start point
                 # 检查鼠标是否在起点上
                 if (mouse_pos[0] >= start_point[0] * cell_size and mouse_pos[0] < (start_point[0] + 1) * cell_size and 
@@ -297,12 +312,7 @@ while running:
                         obstacles.remove(point)
                         delete_obstacle = True
 
-                # 判断是否点击到小窗口
-                elif panel_rect.collidepoint(event.pos):
-                    dragging_panel = True
-                    mouse_x, mouse_y = event.pos
-                    offset_x = mouse_x - panel_rect.x
-                    offset_y = mouse_y - panel_rect.y
+                
 
         # 当鼠标抬起时
         elif event.type == pygame.MOUSEBUTTONUP:
@@ -312,17 +322,13 @@ while running:
                 # Stop dragging the start point
                 # 停止拖拽起点
                 dragging_start = False
-                
                 # Stop dragging the end point
                 # 停止拖拽终点
                 dragging_end = False
-
                 # 停止选择障碍物
                 drawing_obstacle = False
-
                 # 停止删除障碍物
                 delete_obstacle = False
-
                 # 停止拖动panel
                 dragging_panel = False
             
@@ -369,10 +375,43 @@ while running:
                    point != start_point and\
                    point != end_point:
                     obstacles.remove(point)
+            
+            elif dragging_panel:
+                # 移动的距离
+                mouse_x, mouse_y = event.pos
+
+                panel_x = mouse_x - offset_x
+                panel_y = mouse_y - offset_y
+                # 限制移动范围在大窗口内
+                if panel_x < 0:
+                    panel_x = 0
+                elif panel_x + panel_width > screen_width:
+                    panel_x = screen_width - panel_width
+                if panel_y < 0:
+                    panel_y = 0
+                elif panel_y + panel_height > screen_height:
+                    panel_y = screen_height - panel_height
+
+                # 更新小窗口和按钮的位置
+                panel_rect.x = panel_x
+                panel_rect.y = panel_y
+
+            for i in range(len(buttons)):
+                button = buttons[i]
+                new_button_x = panel_rect.x + button_padding * (i + 1) + button_width * i
+                # 限制按钮在小窗口内
+                if new_button_x < 0:
+                    new_button_x = 0
+                button.x = new_button_x
+                button.y = panel_rect.y + button_y
         
+        pygame.draw.rect(panel, ANTIQUE_WHITE, button1_rect)
+        pygame.draw.rect(panel, ANTIQUE_WHITE, button2_rect)
+        pygame.draw.rect(panel, ANTIQUE_WHITE, button3_rect)
+
         draw_grid()
         # 将小窗口绘制到大窗口
-        screen.blit(panel, panel_rect)
+        screen.blit(panel, panel_rect, special_flags=pygame.BLEND_RGBA_MULT)
         # Update the display
         pygame.display.update()
 
