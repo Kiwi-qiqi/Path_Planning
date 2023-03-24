@@ -3,11 +3,6 @@ import pygame
 
 from Color import *
 
-class GripMap():
-    def __init__(self):
-        self.cell_size = 25
-        self.screen_width = 1000
-
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
 cell_size = 25

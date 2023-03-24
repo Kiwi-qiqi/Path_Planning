@@ -1,28 +1,29 @@
 
 # 常用颜色定义
-BLACK = (0, 0, 0)                 # 黑色
-WHITE = (255, 255, 255)           # 白色
-RED = (255, 0, 0)                 # 红色
-GREEN = (0, 255, 0)               # 绿色
-BLUE = (0, 0, 255)                # 蓝色
-GRAY = (64, 64, 64)               # 灰色
+BLACK       = (0, 0, 0)                     # 黑色
+WHITE       = (255, 255, 255)               # 白色
+RED         = (255, 0, 0)                   # 红色
+GREEN       = (0, 255, 0)                   # 绿色
+BLUE        = (0, 0, 255)                   # 蓝色
+GRAY        = (64, 64, 64)                  # 灰色
 
 # 具有设计感和科技感的颜色定义
-GRAPHITE = (80, 80, 80)           # 石墨灰
-MAROON = (128, 0, 0)              # 栗色
-PEARL_WHITE = (240, 240, 240)     # 珍珠白
-HAZE_BLUE = (120, 144, 156)       # 雾蓝色
-STEEL_GRAY = (128, 128, 128)      # 钢铁灰
-BRIGHT_BLUE = (0, 153, 255)       # 亮蓝色
-INDIGO = (75, 0, 130)             # 靛青色
-SIENNA = (160, 82, 45)            # 赭色
-GEMSTONE_BLUE = (17, 100, 180)    # 宝石蓝
-CHROME_YELLOW = (255, 167, 0)     # 铬黄色
-CORAL_RED = (255, 64, 64)         # 珊瑚红
-FIREBRICK_RED = (178, 34, 34)     # 火砖红
-LIME_GREEN = (50, 205, 50)        # 酸橙绿
-VIRIDIAN_GREEN = (64, 130, 109)   # 碧绿色
-TRANSPARENT_BLACK = (0, 0, 0, 128) # 透明黑色
+GRAPHITE    = (80, 80, 80)                  # 石墨灰
+MAROON      = (128, 0, 0)                   # 栗色
+PEARL_WHITE = (240, 240, 240)               # 珍珠白
+HAZE_BLUE   = (120, 144, 156)               # 雾蓝色
+STEEL_GRAY  = (128, 128, 128)               # 钢铁灰
+BRIGHT_BLUE = (0, 153, 255)                 # 亮蓝色
+INDIGO      = (75, 0, 130)                  # 靛青色
+SIENNA      = (160, 82, 45)                 # 赭色
+
+GEMSTONE_BLUE   = (17, 100, 180)            # 宝石蓝
+CHROME_YELLOW   = (255, 167, 0)             # 铬黄色
+CORAL_RED       = (255, 64, 64)             # 珊瑚红
+FIREBRICK_RED   = (178, 34, 34)             # 火砖红
+LIME_GREEN      = (50, 205, 50)             # 酸橙绿
+VIRIDIAN_GREEN      = (64, 130, 109)        # 碧绿色
+TRANSPARENT_BLACK   = (0, 0, 0, 128)        # 透明黑色
 
 
 """
@@ -69,3 +70,12 @@ DARK_GRAY = (64, 64, 64)
 
 # 暗夜黑色 (Midnight Black)
 MIDNIGHT_BLACK = (14, 22, 33)
+
+
+
+PURPLE_RED          = (78, 0, 77, 128)      # 紫红色，透明度50%
+MELLOW_GREEN        = (28, 70, 38, 153)     # 草木绿，透明度60%
+DARK_CYAN           = (0, 64, 64, 200)      # 暗青色，透明度70%
+CHOCOLATE_BROWN     = (55, 20, 0, 102)      # 巧克力棕，透明度40%
+BLACK_PURPLE        = (35, 0, 35, 204)      # 黑紫色，透明度80%
+VIRIDIAN_GREEN      = (64, 130, 109)        # 碧绿色

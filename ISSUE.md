@@ -198,6 +198,33 @@ end_point = (grid_width - 6, grid_height - 6)
 
 ​		1）方案更合适
 
+```python
+def update_start_end_point(self):
+        """
+        当窗口缩放时, 按照固定更新模式会导致起点或终点更新与障碍物位置发生重合
+        因此需要根据地图环境以及障碍物信息, 对起点与终点网格位置进行更新
+        更新策略：
+            1.窗口变化时判断起点or终点是否在界面内
+            2.若不在界面内，则给出默认的初始化点
+            3.如果这个点与障碍物的点重合, 则查找自由区域点进行更新
+        """
+        # print("re-initializing start and end point")
+        if not self.verify_point(self.start_point):
+            # 如果超出区域, 则重置起点
+            self.start_point = (5, 5)
+        if not self.verify_point(self.end_point):
+            # 如果超出区域, 则重置终点
+            self.end_point = (self.grid_width - 6, self.grid_height - 6)
+        
+        width_range  = list(range(self.valid_range['width'][0],  self.valid_range['width'][1]))
+        height_range = list(range(self.valid_range['height'][0], self.valid_range['height'][1]))
+        self.start_point = self.search_point(self.start_point, width_range, height_range)
+        self.end_point   = self.search_point(self.end_point,   list(reversed(width_range)), 
+                                                               list(reversed(height_range)))
+```
+
+
+
 ##### 障碍物处理方式
 
 但是对于障碍物的解决方式还未想好，有三种方案：
@@ -216,13 +243,11 @@ end_point = (grid_width - 6, grid_height - 6)
 
 
 
-### 4、超出区域仍能进行障碍物选择
+### 4、设置带有按钮的浮动窗口
 
-当鼠标在边界的网格进行点击时，仍会选择最近的自由区域作为障碍物
+设置一个小窗口，根据需求设定窗口的大小，在小窗口上横向均匀布置三个按钮，通过点击按钮可以执行指定的命令与模块，例如下图：
 
-是因为validate_verify函数，该函数只用于限制起点与终点不超出区域，就算拖出区域也会限制在边界最近点
-
-但是障碍物不允许，因此新建立一个障碍物有效范围检测的函数
+![image-20230324091727885](ISSUE.assets/image-20230324091727885.png)
 
 
 
