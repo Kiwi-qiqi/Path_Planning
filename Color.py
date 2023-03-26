@@ -23,9 +23,9 @@ CORAL_RED       = (255, 64, 64)             # 珊瑚红
 FIREBRICK_RED   = (178, 34, 34)             # 火砖红
 LIME_GREEN      = (50, 205, 50)             # 酸橙绿
 VIRIDIAN_GREEN      = (64, 130, 109)        # 碧绿色
-TRANSPARENT_BLACK   = (0, 0, 0, 255)        # 透明黑色
+TRANSPARENT_BLACK   = (0, 0, 0, 100)        # 透明黑色
 TRANSPARENT_WHITE   = (255, 255, 255, 128)  # 透明白色
-TRANSPARENT_NE      = (150, 150, 150, 128)     # panel颜色
+TRANSPARENT_GRAY      = (209, 209, 209, 180) # button颜色
 
 """
 霜色 (Gainsboro): (220, 220, 220)。比普通的白色稍微偏灰一点，具有更高的质感和现代感，适合用于设计风格简约而不失高级感的场合。

@@ -3,6 +3,10 @@ import pygame
 
 from Color import *
 
+# Initialize Pygame
+# 初始化 Pygame
+pygame.init()
+
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
 cell_size = 25
@@ -17,47 +21,80 @@ screen_height = 800
 grid_width = screen_width // cell_size
 grid_height = screen_height // cell_size
 
+# Set the screen size
+# 设置屏幕大小
+screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+
 # 创建小窗口界面并设置大小
 panel_width = 300
-panel_height = 70
-panel = pygame.Surface((panel_width, panel_height))
-# panel.fill(TRANSPARENT_NE)
-panel.fill(TRANSPARENT_BLACK)
+panel_height = 100
+panel_color = TRANSPARENT_BLACK
+panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)    # pygame.SRCALPHA，以便表明该surface具有alpha通道
+pygame.draw.rect(panel, panel_color, panel.get_rect(), border_radius=20) # (0, 0, 0, 100), 第四个为alpha, 0 ~ 255 的值，值越小越透明
+
 # panel_rect是以(0,0)为左上角顶点绘制矩形框
 panel_rect = panel.get_rect()
-
 # 将小窗口放在大窗口右侧中心位置
 # panel_rect.center是panel中心的坐标
 panel_rect.center = (screen_width // 2, screen_height - panel_height)
 
 # 创建按钮并设置大小, 并横向均匀在panel上
 button_width = 80
-button_height = 30
+button_height = 50
 
 button_padding = (panel_width - button_width * 3) // 4
 button_y = (panel_height - button_height) // 2
-button1_rect = pygame.Rect(button_padding, button_y, button_width, button_height)
-button2_rect = pygame.Rect(button_padding * 2 + button_width, button_y, button_width, button_height)
-button3_rect = pygame.Rect(button_padding * 3 + button_width * 2, button_y, button_width, button_height)
+button_color = TRANSPARENT_GRAY
 
-buttons = [button1_rect, button2_rect, button3_rect]
+def create_button_text():
+    # 创建字体对象
+    textes = ['Start \n Search', 'Pause \n Search', 'Clear \n Walls'] #'Cancel \n Search'
+    text_color = BLACK
+    button_textes = []
+    for text in textes:
+        font = pygame.font.SysFont('Helvetica', 14)
+        button_text = font.render(text, True, text_color)
+        button_textes.append(button_text)
+    return button_textes
 
-# Initialize Pygame
-# 初始化 Pygame
-pygame.init()
 
-# Set the screen size
-# 设置屏幕大小
-screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+def create_button():
+    buttons = []
+    buttons_rect = []   # 新建一个空列表来存放按钮
+    for i in range(3):
+        button = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+        buttons.append(button)
+
+        button_rect = button.get_rect()
+        pygame.draw.rect(button, button_color, button_rect, border_radius=10)
+
+        button_rect.x = panel_rect.x + button_padding * (i + 1) + button_width * i
+        button_rect.y = panel_rect.y + button_y
+        buttons_rect.append(button_rect)
+    return buttons, buttons_rect
+
+buttons, buttons_rect = create_button()
+button_textes = create_button_text()
+
+for button, button_rect, button_text in zip(buttons, buttons_rect, button_textes):
+    text_rect = button_text.get_rect(center=button.get_rect().center)
+    button.blit(button_text, text_rect)
+    screen.blit(button, button_rect)
+
 
 # Set the background color to white
-# 将背景色设置为白色
+# 将背景色设置为午夜黑
 background_color = MIDNIGHT_BLACK
 screen.fill(background_color)
 
 # Set the grid color to black
 # 将网格颜色设置为黑色
 grid_color = COAL_BLACK
+
+# 设置地图边框网格的颜色为石墨灰
+boundary_color = GRAPHITE
+
+free_space_color = PEACH_PUFF
 
 # Initialize the start and end cells
 # 初始化起点和终点单元格
@@ -106,10 +143,10 @@ def draw_grid():
     # 绘制网格
     for i in range(grid_width):
         for j in range(grid_height):
-            # 绘制边框
+            # 绘制地图边框网格
             rect = pygame.Rect(i * cell_size, j * cell_size, cell_size - 1, cell_size - 1)
             if i == 0 or j == 0 or i == grid_width - 1 or j == grid_height - 1:
-                pygame.draw.rect(screen, GRAPHITE, rect, 0)
+                pygame.draw.rect(screen, boundary_color, rect, 0)
 
             # 绘制起点单元格
             elif (i, j) == start_point:
@@ -128,7 +165,7 @@ def draw_grid():
 
             # 绘制空白单元格
             else:
-                pygame.draw.rect(screen, PEACH_PUFF, rect, 0)
+                pygame.draw.rect(screen, free_space_color, rect, 0)
             
 
 
@@ -242,6 +279,7 @@ def reinitialize_start_end_point(start_point, end_point, grid_width, grid_height
 # 主游戏循环
 running = True
 while running:
+    screen.fill(background_color)
     # Handle events
     # 处理事件
     for event in pygame.event.get():
@@ -396,22 +434,23 @@ while running:
                 panel_rect.x = panel_x
                 panel_rect.y = panel_y
 
-            for i in range(len(buttons)):
-                button = buttons[i]
-                new_button_x = panel_rect.x + button_padding * (i + 1) + button_width * i
-                # 限制按钮在小窗口内
-                if new_button_x < 0:
-                    new_button_x = 0
-                button.x = new_button_x
-                button.y = panel_rect.y + button_y
-        
-        pygame.draw.rect(panel, ANTIQUE_WHITE, button1_rect)
-        pygame.draw.rect(panel, ANTIQUE_WHITE, button2_rect)
-        pygame.draw.rect(panel, ANTIQUE_WHITE, button3_rect)
+                for i in range(len(buttons_rect)):
+                    new_button_x = panel_rect.x + button_padding * (i + 1) + button_width * i
+                    buttons_rect[i].x = new_button_x
+                    buttons_rect[i].y = panel_rect.y + button_y
+
+                    # text = font.render(textes[i], True, text_color)
+                    # # 计算文字坐标使其居中
+                    # text_rect = text.get_rect(center=button_rect.center)
+                    # button.blit(text, text_rect)
 
         draw_grid()
-        # 将小窗口绘制到大窗口
-        screen.blit(panel, panel_rect, special_flags=pygame.BLEND_RGBA_MULT)
+
+        screen.blit(panel, panel_rect)
+
+        for i in range(len(buttons_rect)):
+            screen.blit(button, buttons_rect[i])
+
         # Update the display
         pygame.display.update()
 

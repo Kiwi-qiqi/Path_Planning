@@ -1,41 +1,42 @@
 import pygame
 
-# 初始化 Pygame
 pygame.init()
 
-# 设置窗口尺寸
-WINDOW_SIZE = (500, 500)
+# 设置窗口大小
+win_width, win_height = 640, 480
+screen = pygame.display.set_mode((win_width, win_height))
 
-# 创建大窗口
-window = pygame.display.set_mode(WINDOW_SIZE)
-pygame.display.set_caption("大窗口")
+# 创建一个面板矩形框
+panel_width, panel_height = 400, 200
+panel_color = (192, 192, 192)
+panel_rect = pygame.Rect((win_width - panel_width) // 2, (win_height - panel_height) // 2, panel_width, panel_height)
 
-# 设定颜色
-PEACH_PUFF = (255, 218, 185)
-BLACK_TRANSPARENT = (0, 0, 0, 128)
+# 创建三个矩形框
+button_width, button_height = 100, 50
+button_padding = (panel_width - button_width * 3) // 4
+button_y = (panel_height - button_height) // 2
+button_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+textes = ['Button 1', 'Button 2', 'Button 3']
+text_color = pygame.Color('white')
+font = pygame.font.SysFont('Arial', 24)
 
-# 填充大窗口背景为 Peach Puff 颜色
-window.fill(PEACH_PUFF)
+for i in range(3):
+    button = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+    pygame.draw.rect(button, button_colors[i], button.get_rect(), border_radius=10)
+    button_rect = button.get_rect()
+    button_rect.x = panel_rect.x + button_padding * (i + 1) + button_width * i
+    button_rect.y = panel_rect.y + button_y
+    panel_surface = screen.subsurface(panel_rect)
+    panel_surface.blit(button, button_rect)
+    text = font.render(textes[i], True, text_color)
+    button.blit(text, text.get_rect(center=button.get_rect().center))
 
-# 创建小窗口
-small_window_width = 200
-small_window_height = 100
-small_window = pygame.Surface((small_window_width, small_window_height), pygame.SRCALPHA)
-small_window.fill(BLACK_TRANSPARENT)
-
-# 将小窗口附加到大窗口上
-window.blit(small_window, (50, 50))
-
-# 更新屏幕显示
+# 刷新屏幕
 pygame.display.flip()
 
-# 主循环
-running = True
-while running:
-    # 处理事件
+# 事件循环
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-
-# 退出 Pygame
-pygame.quit()
+            pygame.quit()
+            exit()
