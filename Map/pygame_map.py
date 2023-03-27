@@ -1,7 +1,13 @@
 import os
 import pygame
+import textwrap
 
 from Color import *
+
+# Initialize Pygame
+# 初始化 Pygame
+pygame.init()
+pygame.display.set_caption("Path Finding")
 
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
@@ -17,21 +23,88 @@ screen_height = 800
 grid_width = screen_width // cell_size
 grid_height = screen_height // cell_size
 
-# Initialize Pygame
-# 初始化 Pygame
-pygame.init()
-
 # Set the screen size
 # 设置屏幕大小
 screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
 
+# 创建小窗口界面并设置大小
+panel_width = 300
+panel_height = 100
+panel_color = TRANSPARENT_BLACK
+panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)    # pygame.SRCALPHA，以便表明该surface具有alpha通道
+pygame.draw.rect(panel, panel_color, panel.get_rect(), border_radius=20) # (0, 0, 0, 100), 第四个为alpha, 0 ~ 255 的值，值越小越透明
+
+# panel_rect是以(0,0)为左上角顶点绘制矩形框
+panel_rect = panel.get_rect()
+# 将小窗口放在大窗口右侧中心位置
+# panel_rect.center是panel中心的坐标
+panel_rect.center = (screen_width // 2, screen_height - panel_height)
+
+# 创建按钮并设置大小, 并横向均匀在panel上
+button_width = 80
+button_height = 50
+
+button_padding = (panel_width - button_width * 3) // 4
+button_y = (panel_height - button_height) // 2
+button_color = TRANSPARENT_GRAY
+
+font = pygame.font.SysFont('Helvetica', 18)
+# 定义按钮列表和点击事件
+Button1 = False
+Button2 = False
+Button3 = False
+buttons_with_text = [
+    {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: print('Button 1 clicked!')},
+    {'label': 'Pause\nSearch', 'rect': None, 'callback': lambda: print('Button 2 clicked!')},
+    {'label': 'Clear\nWalls',  'rect': None, 'callback': lambda: obstacles.clear()}
+]
+# buttons_with_text = ['Start\nSearch', 'Pause\nSearch', 'Clear\nWalls'] #'Cancel \n Search'
+text_color = BLACK
+button_surfaces = []
+buttons_rect = [] 
+buttons = []
+def create_button_with_text():
+    for i in range(3):
+        button = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+        pygame.draw.rect(button, button_color, button.get_rect(), border_radius=10)
+        # 将文本进行换行处理
+        text_lines = textwrap.wrap(buttons_with_text[i]['label'], width=5, break_long_words=False, break_on_hyphens=False)
+        # 计算文本总高度和行高
+        total_height = len(text_lines) * font.get_height()
+        line_height = total_height // len(text_lines)
+
+        y = (button.get_height() - total_height) // 2  # 计算垂直居中的偏移量
+        for line in text_lines:
+            button_text = font.render(line, True, text_color)
+
+            button_text_rect = button_text.get_rect(center=(button.get_width() // 2, y + line_height // 2))
+            button.blit(button_text, button_text_rect)
+            y += line_height
+        button_surfaces.append(button)
+    
+    for i, button in enumerate(button_surfaces):
+        button_rect = button.get_rect()
+        button_rect.x = panel_rect.x + button_padding * (i + 1) + button_width * i
+        button_rect.y = panel_rect.y + button_y
+        buttons_with_text[i]['rect'] = button_rect
+        buttons_rect.append(button_rect)
+        screen.blit(button, button_rect)
+
+create_button_with_text()
+
 # Set the background color to white
-# 将背景色设置为白色
+# 将背景色设置为午夜黑
 background_color = MIDNIGHT_BLACK
+screen.fill(background_color)
 
 # Set the grid color to black
 # 将网格颜色设置为黑色
 grid_color = COAL_BLACK
+
+# 设置地图边框网格的颜色为石墨灰
+boundary_color = GRAPHITE
+
+free_space_color = PEACH_PUFF
 
 # Initialize the start and end cells
 # 初始化起点和终点单元格
@@ -55,6 +128,9 @@ drawing_obstacle = False
 # 初始化鼠标滑动选中单元格实现障碍物的删除
 delete_obstacle = False
 
+# 拖动panel
+dragging_panel = False
+
 # 初始化障碍物单元格数据
 obstacles = set()
 obstalce_color = JET_BLACK
@@ -77,10 +153,10 @@ def draw_grid():
     # 绘制网格
     for i in range(grid_width):
         for j in range(grid_height):
-            # 绘制边框
+            # 绘制地图边框网格
             rect = pygame.Rect(i * cell_size, j * cell_size, cell_size - 1, cell_size - 1)
             if i == 0 or j == 0 or i == grid_width - 1 or j == grid_height - 1:
-                pygame.draw.rect(screen, GRAPHITE, rect, 0)
+                pygame.draw.rect(screen, boundary_color, rect, 0)
 
             # 绘制起点单元格
             elif (i, j) == start_point:
@@ -99,7 +175,7 @@ def draw_grid():
 
             # 绘制空白单元格
             else:
-                pygame.draw.rect(screen, PEACH_PUFF, rect, 0)
+                pygame.draw.rect(screen, free_space_color, rect, 0)
             
 
 
@@ -213,6 +289,7 @@ def reinitialize_start_end_point(start_point, end_point, grid_width, grid_height
 # 主游戏循环
 running = True
 while running:
+    screen.fill(background_color)
     # Handle events
     # 处理事件
     for event in pygame.event.get():
@@ -240,12 +317,36 @@ while running:
 
         # 处理鼠标按下事件
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # 添加一个初始值为 False 的 obstacle_processing 变量
+            obstacle_processing = True
             # Check if left mouse button was pressed
             # 检查是否按下了左键
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
-                
+                # 判断是否点击到小窗口
+                # if panel_rect.collidepoint(event.pos):
+                if panel_rect.collidepoint(mouse_pos):
+                    if all(not button['rect'].collidepoint(mouse_pos) for button in buttons_with_text):
+                        dragging_panel = True
+                        drawing_obstacle = False
+                        delete_obstacle  = False
+                        mouse_x, mouse_y = mouse_pos
+                        # 计算鼠标点击当前位置相对panel中心位置移动了多少
+                        # 后续根据偏置量重新得到panel的位置
+                        offset_x = mouse_x - panel_rect.x
+                        offset_y = mouse_y - panel_rect.y
+                        continue
+                    
+                    else:
+                        # 触发相应按钮的点击事件
+                        obstacle_processing = False
+                        for button in buttons_with_text:
+                            if button['rect'].collidepoint(mouse_pos):
+                                button['callback']()
+                                # obstacle_processing = True
+                                break
+
                 # Check if the mouse is on the start point
                 # 检查鼠标是否在起点上
                 if (mouse_pos[0] >= start_point[0] * cell_size and mouse_pos[0] < (start_point[0] + 1) * cell_size and 
@@ -256,21 +357,24 @@ while running:
                 # Check if the mouse is on the end point
                 # 检查鼠标是否在终点上
                 elif (mouse_pos[0] >= end_point[0] * cell_size and mouse_pos[0] < (end_point[0] + 1) * cell_size and 
-                      mouse_pos[1] >= end_point[1] * cell_size and mouse_pos[1] < (end_point[1] + 1) * cell_size):
+                        mouse_pos[1] >= end_point[1] * cell_size and mouse_pos[1] < (end_point[1] + 1) * cell_size):
                     # Start dragging the end point
                     dragging_end = True
 
                 # 检查鼠标是否在自由区域
                 elif point not in boundary:
-                    if point not in obstacles:
-                        # 如果当前单元格不在障碍物集合中, 则将其加入集合中
-                        obstacles.add(point)
-                        drawing_obstacle = True
+                    if obstacle_processing:
+                        if point not in obstacles:
+                            # 如果当前单元格不在障碍物集合中, 则将其加入集合中
+                            obstacles.add(point)
+                            drawing_obstacle = True
 
-                    else:
-                        # 如果当前单元格为障碍物, 则将其从障碍物集合删除
-                        obstacles.remove(point)
-                        delete_obstacle = True
+                        else:
+                            # 如果当前单元格为障碍物, 则将其从障碍物集合删除
+                            obstacles.remove(point)
+                            delete_obstacle = True
+
+                
 
         # 当鼠标抬起时
         elif event.type == pygame.MOUSEBUTTONUP:
@@ -280,16 +384,15 @@ while running:
                 # Stop dragging the start point
                 # 停止拖拽起点
                 dragging_start = False
-                
                 # Stop dragging the end point
                 # 停止拖拽终点
                 dragging_end = False
-
                 # 停止选择障碍物
                 drawing_obstacle = False
-
                 # 停止删除障碍物
                 delete_obstacle = False
+                # 停止拖动panel
+                dragging_panel = False
             
         # 当鼠标移动时
         elif event.type == pygame.MOUSEMOTION:
@@ -334,8 +437,38 @@ while running:
                    point != start_point and\
                    point != end_point:
                     obstacles.remove(point)
-        
+            
+            elif dragging_panel:
+                # 移动的距离
+                mouse_x, mouse_y = event.pos
+
+                panel_x = mouse_x - offset_x
+                panel_y = mouse_y - offset_y
+                # 限制移动范围在大窗口内
+                if panel_x < 0:
+                    panel_x = 0
+                elif panel_x + panel_width > screen_width:
+                    panel_x = screen_width - panel_width
+                if panel_y < 0:
+                    panel_y = 0
+                elif panel_y + panel_height > screen_height:
+                    panel_y = screen_height - panel_height
+
+                # 更新小窗口和按钮的位置
+                panel_rect.x = panel_x
+                panel_rect.y = panel_y
+
+                for i in range(len(buttons_rect)):
+                    new_button_x = panel_rect.x + button_padding * (i + 1) + button_width * i
+                    buttons_rect[i].x = new_button_x
+                    buttons_rect[i].y = panel_rect.y + button_y
+
         draw_grid()
+
+        screen.blit(panel, panel_rect)
+
+        for i in range(len(buttons_rect)):
+            screen.blit(button_surfaces[i], buttons_rect[i])
 
         # Update the display
         pygame.display.update()

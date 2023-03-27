@@ -1,19 +1,17 @@
 import pygame
 from Color import *
-
+from Screen import Screen
 
 class GridMap():
     """
-    GridMap类用于生成一个屏幕, 将屏幕分割为一个一个的网格单元, 支持在网格单元上绘制起点、终点和障碍物, 也支持对网格进行拖动操作。
+    GridMap类将屏幕分割为一个一个的网格单元,
+    支持在网格单元上绘制起点、终点和障碍物
+    也支持对指定的网格进行拖动操作。
 
     Attributes:
         cell_size:          每个网格单元格的大小（以像素为单位）
-        screen_width:       屏幕的宽度
-        screen_height:      屏幕的高度
         grid_width:         网格的宽度
         grid_height:        网格的高度
-        screen:             Pygame窗口对象
-        background_color:   背景色
         grid_color:         网格颜色
         start_point:        起点单元格坐标
         end_point:          终点单元格坐标
@@ -29,34 +27,22 @@ class GridMap():
         valid_range:        有效范围, 鼠标只能在这个范围内选取网格单元
 
     """
-    def __init__(self, cell_size=25, screen_width=1000, screen_height=800):
+    def __init__(self, screen, cell_size=25):
         """
         创建GridMap对象, 并初始化各个属性
 
         Args:
             cell_size:      每个网格单元格的大小（以像素为单位）, 默认为25
-            screen_width:   屏幕的宽度, 默认为1000
-            screen_height:  屏幕的高度, 默认为800
+            screen   :      屏幕, 默认为宽度*高度=1000*800
         """
         self.cell_size      = cell_size
-        self.screen_width   = screen_width
-        self.screen_height  = screen_height
-
         # 计算网格的尺寸
-        self.grid_width  = self.screen_width  // self.cell_size
-        self.grid_height = self.screen_height // self.cell_size
+        self.grid_width  = screen.screen_width  // self.cell_size
+        self.grid_height = screen.screen_height // self.cell_size
         self.initialize()
-
-    def init_screen(self):
-        # 初始化Pygame
-        pygame.init()
-
-        # 创建Pygame窗口
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
 
     def init_color(self):
         # 设置地图中用到的颜色
-        self.background_color   = MIDNIGHT_BLACK
         self.grid_color         = COAL_BLACK
         self.boundary_color     = GRAPHITE
         self.free_space_color   = PEACH_PUFF
@@ -74,14 +60,10 @@ class GridMap():
     def init_bool_state(self):
         # Initialize variables for dragging the start and end cells
         # 初始化拖动起点和终点单元格的变量
-        self.dragging_start = False
-        self.dragging_end   = False
-
-        # 初始化鼠标滑动选中单元格作为障碍物
-        self.drawing_obstacle = False
-
-        # 初始化鼠标滑动选中单元格实现障碍物的删除
-        self.delete_obstacle = False
+        self.dragging_start     = False
+        self.dragging_end       = False
+        self.drawing_obstacle   = False    # 初始化鼠标滑动选中单元格作为障碍物
+        self.delete_obstacle    = False    # 初始化鼠标滑动选中单元格实现障碍物的删除
 
     def init_boundary(self):
         # 初始化列表记录地图的边框单元格数据
@@ -97,7 +79,6 @@ class GridMap():
                             'height':(1, self.grid_height - 2)}
         
     def initialize(self):
-        self.init_screen()
         self.init_color()
         self.init_start_end_point()
         self.init_bool_state()
@@ -105,6 +86,10 @@ class GridMap():
         self.init_obstacles()
         self.set_vaild_range()
 
+    def update_grid(self, screen):
+        # 窗口变化后, 对网格地图进行更新
+        self.grid_width  = screen.screen_width  // self.cell_size
+        self.grid_height = screen.screen_height // self.cell_size
 
     def update_boundary(self):
         # 窗口大小变化后, 对网格地图边界进行更新
@@ -121,7 +106,7 @@ class GridMap():
                            self.cell_size - 1, self.cell_size - 1)
         return rect
     
-    def draw_grid(self):
+    def draw_grid(self, screen):
         # Draw the grid
         # 绘制网格
         for i in range(self.grid_width):
@@ -130,27 +115,27 @@ class GridMap():
                 if (i == 0 or i == self.grid_width  - 1 or 
                     j == 0 or j == self.grid_height - 1):
                     boundary_rect = self.set_rect((i,j))
-                    pygame.draw.rect(self.screen, self.boundary_color, boundary_rect, 0)
+                    pygame.draw.rect(screen.interface, self.boundary_color, boundary_rect, 0)
 
                 # 绘制起点单元格
                 elif (i, j) == self.start_point:
                     start_rect = self.set_rect((i,j))
-                    pygame.draw.rect(self.screen, self.start_color, start_rect, 0)
+                    pygame.draw.rect(screen.interface, self.start_color, start_rect, 0)
 
                 # 绘制终点单元格
                 elif (i, j) == self.end_point:
                     end_rect = self.set_rect((i,j))
-                    pygame.draw.rect(self.screen, self.end_color, end_rect, 0)
+                    pygame.draw.rect(screen.interface, self.end_color, end_rect, 0)
                 
                 # 绘制障碍物单元格
                 elif (i, j) in self.obstacles:
                     obstacle_rect = self.set_rect((i,j))
-                    pygame.draw.rect(self.screen, self.obstalce_color, obstacle_rect, 0)
+                    pygame.draw.rect(screen.interface, self.obstalce_color, obstacle_rect, 0)
 
                 # 绘制空白单元格
                 else:
                     free_space_rect = self.set_rect((i,j))
-                    pygame.draw.rect(self.screen, self.free_space_color, free_space_rect, 0)
+                    pygame.draw.rect(screen.interface, self.free_space_color, free_space_rect, 0)
 
 
     def verify_point(self, point):
@@ -168,7 +153,7 @@ class GridMap():
         else:
             return False
 
-    def obstacles_modify(self):
+    def update_obstacles(self):
         """
         由于窗口界面的变化, 当窗口缩小时, 可能导致障碍物超出了当前窗口界面
         因此当窗口大小变化时, 对障碍物是否在窗口有效范围中进行判断
@@ -227,23 +212,18 @@ class GridMap():
         
         width_range  = list(range(self.valid_range['width'][0],  self.valid_range['width'][1]))
         height_range = list(range(self.valid_range['height'][0], self.valid_range['height'][1]))
+        
         self.start_point = self.search_point(self.start_point, width_range, height_range)
         self.end_point   = self.search_point(self.end_point,   list(reversed(width_range)), 
                                                                list(reversed(height_range)))
 
-    def video_resize_event(self, event):
-        self.screen_width   = event.w
-        self.screen_height  = event.h
-        self.grid_width     = self.screen_width  // self.cell_size
-        self.grid_height    = self.screen_height // self.cell_size
+    def update_with_resize(self, screen):
+        self.update_grid(screen)
         self.set_vaild_range()
         self.update_boundary()
-        self.obstacles_modify()
+        self.update_obstacles()
         self.update_start_end_point()
 
-        # 创建Pygame窗口
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
-        self.screen.fill(self.background_color)
 
     def mouse_pos_validate_verify(self, mouse_pos):
         # Check if the mouse is within the valid range
@@ -342,52 +322,49 @@ class GridMap():
                 self.obstacles.remove(point)
     
 
-    def run(self):
-        # Main game loop
-        # 主游戏循环
-        running = True
-        while running:
-            # Handle events
-            # 处理事件
-            for event in pygame.event.get():
-                
-                # 退出界面
-                if event.type == pygame.QUIT:
-                    running = False
-
-                # 处理窗口大小调整事件
-                elif event.type == pygame.VIDEORESIZE:
-                    self.video_resize_event(event)
-                
-                # 处理鼠标按下事件
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # Check if left mouse button was pressed
-                    # 检查是否按下了左键
-                    if event.button == 1:
-                        self.mouse_button_down_event()
-
-                # 处理鼠标松开事件
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
-                        self.mouse_button_up_event()
-
-                # 当鼠标移动时
-                elif event.type == pygame.MOUSEMOTION:
-                    self.mouse_motion_event()
-
-                self.draw_grid()
-
-                # Update the display
-                pygame.display.update()
-
-        # Quit Pygame
-        pygame.quit()
-
-
 #------------------------------------------Test------------------------------------------#
 def main():
-    grid_map_test = GridMap()
-    grid_map_test.run()
+    screen = Screen(title="Path Finding")
+    grid_map = GridMap(screen, cell_size=50)
+
+    running = True
+    while running:
+        # Handle events
+        # 处理事件
+        for event in pygame.event.get():
+            
+            # 退出界面
+            if event.type == pygame.QUIT:
+                running = False
+
+            # 处理窗口大小调整事件
+            elif event.type == pygame.VIDEORESIZE:
+                screen.video_resize_event(event)
+                grid_map.update_with_resize(screen)
+            
+            # 处理鼠标按下事件
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Check if left mouse button was pressed
+                # 检查是否按下了左键
+                if event.button == 1:
+                    grid_map.mouse_button_down_event()
+
+            # 处理鼠标松开事件
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    grid_map.mouse_button_up_event()
+
+            # 当鼠标移动时
+            elif event.type == pygame.MOUSEMOTION:
+                grid_map.mouse_motion_event()
+
+            grid_map.draw_grid(screen)
+
+            # Update the display
+            pygame.display.update()
+
+    # Quit Pygame
+    pygame.quit()
 
 
 if __name__ == "__main__":

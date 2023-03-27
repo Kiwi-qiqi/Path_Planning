@@ -1,11 +1,13 @@
 import os
 import pygame
+import textwrap
 
 from Color import *
 
 # Initialize Pygame
 # 初始化 Pygame
 pygame.init()
+pygame.display.set_caption("Path Finding")
 
 # Set the size of each grid cell in pixels
 # 设置每个网格单元格的大小（以像素为单位）
@@ -46,41 +48,45 @@ button_padding = (panel_width - button_width * 3) // 4
 button_y = (panel_height - button_height) // 2
 button_color = TRANSPARENT_GRAY
 
-def create_button_text():
-    # 创建字体对象
-    textes = ['Start \n Search', 'Pause \n Search', 'Clear \n Walls'] #'Cancel \n Search'
-    text_color = BLACK
-    button_textes = []
-    for text in textes:
-        font = pygame.font.SysFont('Helvetica', 14)
-        button_text = font.render(text, True, text_color)
-        button_textes.append(button_text)
-    return button_textes
-
-
-def create_button():
-    buttons = []
-    buttons_rect = []   # 新建一个空列表来存放按钮
+font = pygame.font.SysFont('Helvetica', 18)
+# 定义按钮列表和点击事件
+buttons_with_text = [
+    {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: print('Button 1 clicked!')},
+    {'label': 'Pause\nSearch', 'rect': None, 'callback': lambda: print('Button 2 clicked!')},
+    {'label': 'Clear\nWalls',  'rect': None, 'callback': lambda: obstacles.clear()}
+]
+text_color = BLACK
+button_surfaces = []
+buttons_rect = [] 
+buttons = []
+def create_button_with_text():
     for i in range(3):
         button = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
-        buttons.append(button)
+        pygame.draw.rect(button, button_color, button.get_rect(), border_radius=10)
+        # 将文本进行换行处理
+        text_lines = textwrap.wrap(buttons_with_text[i]['label'], width=5, break_long_words=False, break_on_hyphens=False)
+        # 计算文本总高度和行高
+        total_height = len(text_lines) * font.get_height()
+        line_height = total_height // len(text_lines)
 
+        y = (button.get_height() - total_height) // 2  # 计算垂直居中的偏移量
+        for line in text_lines:
+            button_text = font.render(line, True, text_color)
+
+            button_text_rect = button_text.get_rect(center=(button.get_width() // 2, y + line_height // 2))
+            button.blit(button_text, button_text_rect)
+            y += line_height
+        button_surfaces.append(button)
+    
+    for i, button in enumerate(button_surfaces):
         button_rect = button.get_rect()
-        pygame.draw.rect(button, button_color, button_rect, border_radius=10)
-
         button_rect.x = panel_rect.x + button_padding * (i + 1) + button_width * i
         button_rect.y = panel_rect.y + button_y
+        buttons_with_text[i]['rect'] = button_rect
         buttons_rect.append(button_rect)
-    return buttons, buttons_rect
+        # panel.blit(button, button_rect)
 
-buttons, buttons_rect = create_button()
-button_textes = create_button_text()
-
-for button, button_rect, button_text in zip(buttons, buttons_rect, button_textes):
-    text_rect = button_text.get_rect(center=button.get_rect().center)
-    button.blit(button_text, text_rect)
-    screen.blit(button, button_rect)
-
+create_button_with_text()
 
 # Set the background color to white
 # 将背景色设置为午夜黑
@@ -307,22 +313,35 @@ while running:
 
         # 处理鼠标按下事件
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # 添加一个初始值为 False 的 obstacle_processing 变量
+            obstacle_processing = True
             # Check if left mouse button was pressed
             # 检查是否按下了左键
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 point = (mouse_pos[0] // cell_size, mouse_pos[1] // cell_size)
                 # 判断是否点击到小窗口
-                if panel_rect.collidepoint(event.pos):
-                    dragging_panel = True
-                    drawing_obstacle = False
-                    delete_obstacle  = False
-                    mouse_x, mouse_y = event.pos
-                    # 计算鼠标点击当前位置相对panel中心位置移动了多少
-                    # 后续根据偏置量重新得到panel的位置
-                    offset_x = mouse_x - panel_rect.x
-                    offset_y = mouse_y - panel_rect.y
-                    continue
+                # if panel_rect.collidepoint(event.pos):
+                if panel_rect.collidepoint(mouse_pos):
+                    if all(not button['rect'].collidepoint(mouse_pos) for button in buttons_with_text):
+                        dragging_panel = True
+                        drawing_obstacle = False
+                        delete_obstacle  = False
+                        mouse_x, mouse_y = mouse_pos
+                        # 计算鼠标点击当前位置相对panel中心位置移动了多少
+                        # 后续根据偏置量重新得到panel的位置
+                        offset_x = mouse_x - panel_rect.x
+                        offset_y = mouse_y - panel_rect.y
+                        continue
+                    
+                    else:
+                        # 触发相应按钮的点击事件
+                        obstacle_processing = False
+                        for button in buttons_with_text:
+                            if button['rect'].collidepoint(mouse_pos):
+                                button['callback']()
+                                # obstacle_processing = True
+                                break
 
                 # Check if the mouse is on the start point
                 # 检查鼠标是否在起点上
@@ -334,21 +353,22 @@ while running:
                 # Check if the mouse is on the end point
                 # 检查鼠标是否在终点上
                 elif (mouse_pos[0] >= end_point[0] * cell_size and mouse_pos[0] < (end_point[0] + 1) * cell_size and 
-                      mouse_pos[1] >= end_point[1] * cell_size and mouse_pos[1] < (end_point[1] + 1) * cell_size):
+                        mouse_pos[1] >= end_point[1] * cell_size and mouse_pos[1] < (end_point[1] + 1) * cell_size):
                     # Start dragging the end point
                     dragging_end = True
 
                 # 检查鼠标是否在自由区域
                 elif point not in boundary:
-                    if point not in obstacles:
-                        # 如果当前单元格不在障碍物集合中, 则将其加入集合中
-                        obstacles.add(point)
-                        drawing_obstacle = True
+                    if obstacle_processing:
+                        if point not in obstacles:
+                            # 如果当前单元格不在障碍物集合中, 则将其加入集合中
+                            obstacles.add(point)
+                            drawing_obstacle = True
 
-                    else:
-                        # 如果当前单元格为障碍物, 则将其从障碍物集合删除
-                        obstacles.remove(point)
-                        delete_obstacle = True
+                        else:
+                            # 如果当前单元格为障碍物, 则将其从障碍物集合删除
+                            obstacles.remove(point)
+                            delete_obstacle = True
 
                 
 
@@ -439,17 +459,12 @@ while running:
                     buttons_rect[i].x = new_button_x
                     buttons_rect[i].y = panel_rect.y + button_y
 
-                    # text = font.render(textes[i], True, text_color)
-                    # # 计算文字坐标使其居中
-                    # text_rect = text.get_rect(center=button_rect.center)
-                    # button.blit(text, text_rect)
-
         draw_grid()
 
         screen.blit(panel, panel_rect)
 
         for i in range(len(buttons_rect)):
-            screen.blit(button, buttons_rect[i])
+            screen.blit(button_surfaces[i], buttons_rect[i])
 
         # Update the display
         pygame.display.update()
