@@ -1,4 +1,5 @@
 import random
+import win32api
 from math import sin, cos, pi, log
 from tkinter import *
 
@@ -15,12 +16,12 @@ COLORS_FOR_HEART = {
     'Hot Pink': "#FF69B4"            # 热情的粉红色
 }
 
-CANVAS_WIDTH = 640
-CANVAS_HEIGHT = 480
+CANVAS_WIDTH = win32api.GetSystemMetrics(0)
+CANVAS_HEIGHT = win32api.GetSystemMetrics(1)
 CANVAS_CENTER_X = CANVAS_WIDTH / 2
 CANVAS_CENTER_Y = CANVAS_HEIGHT / 2
 IMAGE_ENLARGE = 11
-HEART_COLOR = COLORS_FOR_HEART['Hot Pink']
+HEART_COLOR = COLORS_FOR_HEART['magenta']
 
 
 def heart_function(t, shrink_ratio: float = IMAGE_ENLARGE):

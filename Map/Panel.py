@@ -1,7 +1,20 @@
+"""
+Panel
+@author: Liu Feihao
+Function:
+    Create a Panel class
+    Set the panel as the carrier for the button.
+    
+"""
+import os
+import sys
 import pygame
-from Color import *
-from Screen import Screen
-from GridMap import GridMap
+
+# map_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Map'))
+map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
+sys.path.append(map_path)
+
+from Map.Color import *
 
 class Panel():
     def __init__(self, screen, panel_width=300, panel_height=100):
@@ -9,7 +22,6 @@ class Panel():
         self.panel_height = panel_height
 
         self.initialize(screen)
-
 
     def init_pygame(self):
         pygame.init()
@@ -37,6 +49,7 @@ class Panel():
 
 
     def update_panel_pose(self, screen):
+        # 窗口大小变化时,更新panel的位置到窗口的中下位置
         self.panel_rect.center = (screen.screen_width // 2, screen.screen_height - self.panel_height)
 
     def mouse_button_down_event(self, grid_map):
@@ -80,66 +93,3 @@ class Panel():
 
     def blit_panel(self, screen):
         screen.interface.blit(self.panel, self.panel_rect)
-
-
-        
-
-
-#------------------------------------------Test------------------------------------------#
-def main():
-    screen = Screen(title="Path Finding")
-    grid_map = GridMap(screen, cell_size=30)
-    panel = Panel(screen)
-
-    running = True
-    while running:
-        # Handle events
-        # 处理事件
-        for event in pygame.event.get():
-            
-            # 退出界面
-            if event.type == pygame.QUIT:
-                running = False
-
-            # 处理窗口大小调整事件
-            elif event.type == pygame.VIDEORESIZE:
-                screen.video_resize_event(event)
-                grid_map.update_with_resize(screen)
-                panel.update_panel_pose(screen)
-            
-            # 处理鼠标按下事件
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Check if left mouse button was pressed
-                # 检查是否按下了左键
-                if event.button == 1:
-                    panel.mouse_button_down_event(grid_map)
-                    # print(panel.dragging_panel)
-                    if panel.dragging_panel:
-                        continue
-                    else:
-                        grid_map.mouse_button_down_event()
-                    
-
-            # 处理鼠标松开事件
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    grid_map.mouse_button_up_event()
-                    panel.mouse_button_up_event()
-
-            # 当鼠标移动时
-            elif event.type == pygame.MOUSEMOTION:
-                grid_map.mouse_motion_event()
-                panel.mouse_motion_event(screen)
-
-            grid_map.draw_grid(screen)
-            panel.blit_panel(screen)
-
-            # Update the display
-            pygame.display.update()
-
-    # Quit Pygame
-    pygame.quit()
-
-
-if __name__ == "__main__":
-    main()

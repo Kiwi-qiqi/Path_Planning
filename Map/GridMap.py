@@ -1,6 +1,20 @@
+"""
+GridMap
+@author: Liu Feihao
+Function:
+    Create a GridMap class
+    Set Start and End Point
+    Select the obstacle by clicking on it with mouse
+"""
+import os
+import sys
 import pygame
-from Color import *
-from Screen import Screen
+
+# map_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Map'))
+map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
+sys.path.append(map_path)
+
+from Map.Color import *
 
 class GridMap():
     """
@@ -250,6 +264,7 @@ class GridMap():
 
     def mouse_button_down_event(self):
         mouse_pos = pygame.mouse.get_pos()
+        mouse_point = (mouse_pos[0] // self.cell_size, mouse_pos[1] // self.cell_size)
         
         # Check if the mouse is on the start point
         if self.mouse_pose_is_start_or_end(mouse_pos, self.start_point):
@@ -262,16 +277,15 @@ class GridMap():
             self.dragging_end = True
 
         # 检查鼠标是否在自由区域
-        elif (mouse_pos[0], mouse_pos[1]) not in self.boundary:
-            if ((mouse_pos[0] // self.cell_size, 
-                    mouse_pos[1] // self.cell_size)) not in self.obstacles:
+        elif mouse_point not in self.boundary:
+            if mouse_point not in self.obstacles:
                 # 如果当前单元格不在障碍物集合中, 则将其加入集合中
-                self.obstacles.add((mouse_pos[0] // self.cell_size, mouse_pos[1] // self.cell_size))
+                self.obstacles.add(mouse_point)
                 self.drawing_obstacle = True
 
             else:
                 # 如果当前单元格为障碍物, 则将其从障碍物集合删除
-                self.obstacles.remove((mouse_pos[0] // self.cell_size, mouse_pos[1] // self.cell_size))
+                self.obstacles.remove(mouse_point)
                 self.delete_obstacle = True
 
     def mouse_button_up_event(self):
@@ -320,52 +334,3 @@ class GridMap():
                point != self.start_point and\
                point != self.end_point:
                 self.obstacles.remove(point)
-    
-
-#------------------------------------------Test------------------------------------------#
-def main():
-    screen = Screen(title="Path Finding")
-    grid_map = GridMap(screen, cell_size=50)
-
-    running = True
-    while running:
-        # Handle events
-        # 处理事件
-        for event in pygame.event.get():
-            
-            # 退出界面
-            if event.type == pygame.QUIT:
-                running = False
-
-            # 处理窗口大小调整事件
-            elif event.type == pygame.VIDEORESIZE:
-                screen.video_resize_event(event)
-                grid_map.update_with_resize(screen)
-            
-            # 处理鼠标按下事件
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Check if left mouse button was pressed
-                # 检查是否按下了左键
-                if event.button == 1:
-                    grid_map.mouse_button_down_event()
-
-            # 处理鼠标松开事件
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    grid_map.mouse_button_up_event()
-
-            # 当鼠标移动时
-            elif event.type == pygame.MOUSEMOTION:
-                grid_map.mouse_motion_event()
-
-            grid_map.draw_grid(screen)
-
-            # Update the display
-            pygame.display.update()
-
-    # Quit Pygame
-    pygame.quit()
-
-
-if __name__ == "__main__":
-    main()

@@ -41,12 +41,12 @@ panel_rect = panel.get_rect()
 panel_rect.center = (screen_width // 2, screen_height - panel_height)
 
 # 创建按钮并设置大小, 并横向均匀在panel上
-button_width = 80
+button_width  = 80
 button_height = 50
 
-button_padding = (panel_width - button_width * 3) // 4
-button_y = (panel_height - button_height) // 2
-button_color = TRANSPARENT_GRAY
+button_padding  = (panel_width  - button_width * 3) // 4
+button_y        = (panel_height - button_height) // 2
+button_color    = TRANSPARENT_GRAY
 
 font = pygame.font.SysFont('Helvetica', 18)
 # 定义按钮列表和点击事件
@@ -323,15 +323,17 @@ while running:
                 # 判断是否点击到小窗口
                 # if panel_rect.collidepoint(event.pos):
                 if panel_rect.collidepoint(mouse_pos):
+                    drawing_obstacle = False
+                    delete_obstacle  = False
+                    mouse_x, mouse_y = mouse_pos
+                    # 计算鼠标点击当前位置相对panel中心位置移动了多少
+                    # 后续根据偏置量重新得到panel的位置
+                    offset_x = mouse_x - panel_rect.x
+                    offset_y = mouse_y - panel_rect.y
+
                     if all(not button['rect'].collidepoint(mouse_pos) for button in buttons_with_text):
                         dragging_panel = True
-                        drawing_obstacle = False
-                        delete_obstacle  = False
-                        mouse_x, mouse_y = mouse_pos
-                        # 计算鼠标点击当前位置相对panel中心位置移动了多少
-                        # 后续根据偏置量重新得到panel的位置
-                        offset_x = mouse_x - panel_rect.x
-                        offset_y = mouse_y - panel_rect.y
+                        
                         continue
                     
                     else:
