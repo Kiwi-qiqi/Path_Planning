@@ -1,3 +1,7 @@
+"""
+Button Test
+@author: Liu Feihao
+"""
 import os
 import sys
 import pygame

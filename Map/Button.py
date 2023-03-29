@@ -102,6 +102,7 @@ class Button():
         self.text_color     = BLACK
 
     def init_bool_state(self):
+        self.start_search = False
         self.obstacle_processing = True # 用于处理障碍物
 
     def init_font(self):
@@ -138,13 +139,14 @@ class Button():
             self.buttons_with_text[i]['rect'] = button_rect
             self.buttons_rect.append(button_rect)
 
+
     def init_button(self, grid_map, panel):
         self.button_surfaces    = []
         self.buttons_rect       = [] 
         self.buttons            = []
         # 定义按钮列表和点击事件
         self.buttons_with_text = [
-            {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: print('Button 1 clicked!')},
+            {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: self.start_search==True},
             {'label': 'Pause\nSearch', 'rect': None, 'callback': lambda: print('Button 2 clicked!')},
             {'label': 'Clear\nWalls',  'rect': None, 'callback': lambda: grid_map.obstacles.clear()}]
 
