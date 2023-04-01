@@ -17,7 +17,9 @@ from Map.GridMap import GridMap
 def main():
     screen = Screen(title="Path Finding")
     grid_map = GridMap(screen, cell_size=50)
-
+    if grid_map.init_random_obs:
+        grid_map.set_obstacles()
+    
     running = True
     while running:
         # Handle events

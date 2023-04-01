@@ -1,106 +1,73 @@
 import pygame
+import panel as pn
+import sys
 
-# 初始化pygame
+# 初始化 Pygame 和 Panel
 pygame.init()
+pn.extension()
 
-# 创建窗口并设置大小
-screen_width = 1000
-screen_height = 800
-screen = pygame.display.set_mode((screen_width, screen_height))
+# 设置游戏屏幕的大小和标题
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Pygame with Panel')
 
-# 创建小窗口并设置大小
-box_width = 300
-box_height = 100
-box = pygame.Surface((box_width, box_height))
-box.fill((255, 255, 255))
-box_rect = box.get_rect()
+# 创建一个 Panel 应用，并定义 Panel 的大小和位置
+app = pn.Column(width=500, height=400)
+app_pos = (150, 100)
 
-# 将小窗口放在大窗口中心位置
-box_rect.center = (screen_width // 2, screen_height // 2)
+# 创建一个 Checkbox，并将其与一段文本绑定在一起
+checkbox = pn.widgets.Checkbox(name='选项 1', width=100)
+text = pn.pane.Markdown('这里是选项 1 执行的内容')
 
-# 设置拖拽标志
-dragging = False
+# 定义当 Checkbox 被选中时执行的函数
+def checkbox_callback(event):
+    if event.new:
+        # Checkbox 被选中
+        checkbox.label = '✓ 选项 1'
+        text.object = '这里是选项 1 执行的内容'
+        # 执行选项 1 对应的功能
+        print('执行选项1')
+    else:
+        # Checkbox 被取消选中
+        checkbox.label = '○ 选项 1'
+        text.object = ''
+        # 取消选项 1 对应的功能
+        print('不执行选项1')
 
-# 创建按钮并设置大小
-button_width = 80
-button_height = 30
-button_padding = (box_width - button_width * 3) // 4
-button_y = (box_height - button_height) // 2
-button1_rect = pygame.Rect(button_padding, button_y, button_width, button_height)
-button2_rect = pygame.Rect(button_padding * 2 + button_width, button_y, button_width, button_height)
-button3_rect = pygame.Rect(button_padding * 3 + button_width * 2, button_y, button_width, button_height)
+# 将 Checkbox 的回调函数绑定到其 on_change 事件上
+# checkbox._comm_change('value', checkbox_callback)
+checkbox._comm_change['value'] = [checkbox_callback]
 
-buttons = [button1_rect, button2_rect, button3_rect]
 
-# 游戏循环
+# 在 Panel 上添加 Checkbox 和文本
+app.append(checkbox)
+app.append(text)
+
+# 定义 Panel 的位置和大小，以及 Panel 是否被拖动
+panel_rect = pygame.Rect(app_pos[0], app_pos[1], app.width, app.height)
+is_dragging_panel = False
+
+# 游戏主循环
 while True:
     # 处理游戏事件
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            # 退出游戏
             pygame.quit()
-            exit()
-
+            sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # 判断是否点击到小窗口
-            if box_rect.collidepoint(event.pos):
-                dragging = True
-                mouse_x, mouse_y = event.pos
-                offset_x = mouse_x - box_rect.x
-                offset_y = mouse_y - box_rect.y
-
+            # 检查鼠标是否在 Panel 上单击
+            if panel_rect.collidepoint(event.pos):
+                is_dragging_panel = True
         elif event.type == pygame.MOUSEBUTTONUP:
-            # 放开鼠标停止拖拽
-            dragging = False
-
+            # 停止拖动 Panel
+            is_dragging_panel = False
         elif event.type == pygame.MOUSEMOTION:
-            # 拖拽移动小窗口
-            if dragging:
-                # 移动的距离
-                mouse_x, mouse_y = event.pos
-                box_x = mouse_x - offset_x
-                box_y = mouse_y - offset_y
-                # 限制移动范围在大窗口内
-                if box_x < 0:
-                    box_x = 0
-                elif box_x + box_width > screen_width:
-                    box_x = screen_width - box_width
-                if box_y < 0:
-                    box_y = 0
-                elif box_y + box_height > screen_height:
-                    box_y = screen_height - box_height
-
-                # 更新小窗口和按钮的位置
-                box_rect.x = box_x
-                box_rect.y = box_y
-
-                for i in range(len(buttons)):
-                    button = buttons[i]
-                    new_button_x = box_x + button_padding * (i + 1) + button_width * i
-                    # 限制按钮在小窗口内
-                    if new_button_x < 0:
-                        new_button_x = 0
-                    button.x = new_button_x
-                    button.y = box_y + button_y
-
-                # for i in range(len(buttons)):
-                #     button = buttons[i]
-                #     new_button_x = box_x + button_padding * (i + 1) + button_width * i
-                #     button.x = new_button_x
-                #     button.y = box_y + button_y
-
-                # 绘制按钮
-            pygame.draw.rect(box, (120, 120, 120), button1_rect)
-            pygame.draw.rect(box, (120, 120, 120), button2_rect)
-            pygame.draw.rect(box, (120, 120, 120), button3_rect)
-
-    # 填充背景颜色
-    screen.fill((200, 200, 200))
-
-    # 将小窗口绘制到大窗口
-    screen.blit(box, box_rect)
-
-
-
-    # 更新屏幕显示
-    pygame.display.flip()
+            # 如果正在拖动 Panel，移动 Panel 到新位置
+            if is_dragging_panel:
+                panel_rect.move_ip(event.rel)
+                app_pos = (panel_rect.left, panel_rect.top)
+    
+    # 绘制屏幕背景和 Panel
+    screen.fill((255, 255, 255))
+    app.show(port=pygame.display.get_wm_info()['window'])
+    pygame.display.update()

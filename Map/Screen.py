@@ -41,10 +41,12 @@ class Screen:
         处理窗口大小调整事件。
     """
 
-    def __init__(self, screen_width=1000, screen_height=800, title="Path Finding"):
+    def __init__(self, screen_width=1000, screen_height=800, title="Path Finding", 
+                       background_color = MIDNIGHT_BLACK):
         self.screen_width   = screen_width
         self.screen_height  = screen_height
         self.title          = title
+        self.background_color = background_color
         
         self.update_screen_size()
         self.init_screen()
@@ -55,8 +57,6 @@ class Screen:
         pygame.init()
         pygame.display.set_caption(self.title)
         self.interface = pygame.display.set_mode(self.size, pygame.RESIZABLE)
-        self.background_color = MIDNIGHT_BLACK
-        self.interface.fill(self.background_color)
 
     def update_screen_size(self):
         """更新窗口大小。"""
@@ -87,4 +87,3 @@ class Screen:
             self.screen_width, self.screen_height = self.max_size
         self.update_screen_size()
         self.interface = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
-        self.interface.fill(self.background_color)

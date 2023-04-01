@@ -30,15 +30,19 @@ class Panel():
         self.panel_color    = TRANSPARENT_BLACK
     
     def init_bool_state(self):
-        self.dragging_panel = False
+        self.dragging_panel             = False
+
+        self.gridmap_process_obstacle   = True
+        self.gridmap_drawing_obstacle   = True
+        self.gridmap_delete_obstacle    = True
     
     def init_panel(self, screen):
         self.panel = pygame.Surface((self.panel_width, self.panel_height), pygame.SRCALPHA)     # pygame.SRCALPHA，以便表明该surface具有alpha通道
         pygame.draw.rect(self.panel, self.panel_color, self.panel.get_rect(), border_radius=20) # (0, 0, 0, 100), 第四个为alpha, 0 ~ 255 的值，值越小越透明
         # panel_rect是以(0,0)为左上角顶点绘制矩形框
         self.panel_rect = self.panel.get_rect()
-        # 将panel放在screen右侧中心位置
-        # panel_rect.center是panel中心的坐标
+
+        # 将panel放在screen右侧中心位置, panel_rect.center是panel中心的坐标
         self.panel_rect.center = (screen.screen_width // 2, screen.screen_height - self.panel_height)
 
     def initialize(self, screen):
@@ -47,18 +51,20 @@ class Panel():
         self.init_bool_state()
         self.init_panel(screen)
 
-
     def update_panel_pose(self, screen):
         # 窗口大小变化时,更新panel的位置到窗口的中下位置
         self.panel_rect.center = (screen.screen_width // 2, screen.screen_height - self.panel_height)
 
-    def mouse_button_down_event(self, grid_map):
+    def mouse_button_down_event(self):
         mouse_pos = pygame.mouse.get_pos()
         if self.panel_rect.collidepoint(mouse_pos):
-            # print('Click Panel')
-            self.dragging_panel         = True
-            grid_map.drawing_obstacle   = False
-            grid_map.delete_obstacle    = False
+            # 当鼠标点击到panel时, panel可拖动, 但无法处理障碍物
+            self.dragging_panel            = True
+
+            self.gridmap_process_obstacle = False
+            self.gridmap_drawing_obstacle = False
+            self.gridmap_delete_obstacle  = False
+
             # 计算鼠标点击当前位置相对panel中心位置移动了多少
             # 后续根据偏置量重新得到panel的位置
             mouse_x, mouse_y = mouse_pos
@@ -66,8 +72,12 @@ class Panel():
             self.offset_y = mouse_y - self.panel_rect.y
 
     def mouse_button_up_event(self):
-        # 停止拖动panel
+        # 停止拖动panel, 障碍物可以被处理
         self.dragging_panel = False
+
+        self.gridmap_process_obstacle = True
+        self.gridmap_drawing_obstacle = True
+        self.gridmap_delete_obstacle  = True
 
     def mouse_motion_event(self, screen):
         if self.dragging_panel:
@@ -92,4 +102,5 @@ class Panel():
 
 
     def blit_panel(self, screen):
+        # pygame.draw.rect(screen.interface, self.panel_rect)
         screen.interface.blit(self.panel, self.panel_rect)

@@ -8,7 +8,9 @@ Function:
 """
 import os
 import sys
+import random
 import pygame
+import numpy as np
 
 # map_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Map'))
 map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
@@ -76,8 +78,12 @@ class GridMap():
         # 初始化拖动起点和终点单元格的变量
         self.dragging_start     = False
         self.dragging_end       = False
+        self.init_random_obs    = False
+        self.clear_obstacles    = False
         self.drawing_obstacle   = False    # 初始化鼠标滑动选中单元格作为障碍物
         self.delete_obstacle    = False    # 初始化鼠标滑动选中单元格实现障碍物的删除
+        self.obstacle_processing= True     # 初始化时 是可以鼠标单击实现障碍物处理
+
 
     def init_boundary(self):
         # 初始化列表记录地图的边框单元格数据
@@ -91,7 +97,24 @@ class GridMap():
         # 设置有效范围
         self.valid_range = {'width' :(1, self.grid_width  - 2), 
                             'height':(1, self.grid_height - 2)}
-        
+
+    def set_obstacles(self, density=0.3):
+        """
+        在窗口初始化时, 创建一些随机障碍物
+        随机障碍物范围为地图边界内, 不与起点终点重合
+        """
+        # 初始化障碍物设置会清空原有的障碍物
+        self.obstacles.clear()
+        min_range = (self.valid_range['width'][0],   self.valid_range['height'][0])
+        max_range = (self.valid_range['width'][1]+1, self.valid_range['height'][1]+1)
+
+        # 共有N个可行的单元格
+        N = (max_range[0]-min_range[0]) * (max_range[1]-min_range[1])
+        # 设置障碍物密度density
+        while len(self.obstacles) < N * density:
+            point = tuple(np.random.randint(low=min_range, high=max_range, size=2))
+            self.obstacles.add(point)
+
     def initialize(self):
         self.init_color()
         self.init_start_end_point()
@@ -278,15 +301,16 @@ class GridMap():
 
         # 检查鼠标是否在自由区域
         elif mouse_point not in self.boundary:
-            if mouse_point not in self.obstacles:
-                # 如果当前单元格不在障碍物集合中, 则将其加入集合中
-                self.obstacles.add(mouse_point)
-                self.drawing_obstacle = True
+            if self.obstacle_processing:
+                if mouse_point not in self.obstacles:
+                    # 如果当前单元格不在障碍物集合中, 则将其加入集合中
+                    self.obstacles.add(mouse_point)
+                    self.drawing_obstacle = True
 
-            else:
-                # 如果当前单元格为障碍物, 则将其从障碍物集合删除
-                self.obstacles.remove(mouse_point)
-                self.delete_obstacle = True
+                else:
+                    # 如果当前单元格为障碍物, 则将其从障碍物集合删除
+                    self.obstacles.remove(mouse_point)
+                    self.delete_obstacle = True
 
     def mouse_button_up_event(self):
         self.dragging_start     = False

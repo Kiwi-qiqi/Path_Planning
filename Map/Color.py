@@ -80,3 +80,15 @@ DARK_CYAN           = (0, 64, 64, 200)      # 暗青色, 透明度70%
 CHOCOLATE_BROWN     = (55, 20, 0, 102)      # 巧克力棕, 透明度40%
 BLACK_PURPLE        = (35, 0, 35, 204)      # 黑紫色, 透明度80%
 VIRIDIAN_GREEN      = (64, 130, 109)        # 碧绿色
+
+# 柔和的黄色
+YELLOW_SOFT = (255, 255, 204)
+
+# 金黄色
+YELLOW_GOLD = (212, 175, 55)
+
+# 橙黄色
+YELLOW_ORANGE = (255, 168, 0)
+
+# 古董黄色
+YELLOW_ANTIQUE = (250, 218, 94)
