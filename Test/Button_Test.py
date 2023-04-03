@@ -4,6 +4,7 @@ Button Test
 """
 import os
 import sys
+import time
 import pygame
 
 # 将 Map 文件夹所在路径添加到 sys.path 中
@@ -16,11 +17,80 @@ from Map.Panel   import Panel
 from Map.Button  import Button
 
 #------------------------------------------Test------------------------------------------#
-def button_function_test(button):
+def countdown_timer(dynamic_visualize):
+    # 定义倒数时长
+    countdown = 10
+    start_time = time.time()
+    pause_time = None
+
+    while countdown > 0:
+        if dynamic_visualize:
+            countdown = 10 - int(time.time() - start_time)
+            print('倒计时: ', countdown)
+            if countdown <= 0:
+                # 计时结束
+                dynamic_visualize = False
+
+        else:
+            pause_time = time.time()
+            start_time += time.time() - pause_time
+            countdown = 10 - int(time.time() - start_time)
+            print('倒计时: ', countdown)
+
+def show_dynamic(dynamic_visualize):
+    for i in range(100):
+        if dynamic_visualize:
+            pygame.time.delay(100)
+            print(i)
+            if i >= 9:
+                dynamic_visualize = False
+                break
+        else:
+            break
+
+
+def button1_function_test(button):
     if button.start_search:
-        print('Start Search!')
+        print('Start Search--Algorithm!')
         button.start_search = False
+        
+    elif button.restart_search:
+        print('Restart Search--Algorithm!')
+        button.restart_search = False
+
+    elif button.resume_search:
+        print('Resume Search--Algorithm!')
+        button.resume_search = False
+
+
+def button2_function_test(button):
+    if button.pause_search:
+        # 暂停可视化的过程
+        print('Pause Search!')
+        button.dynamic_visualize = False
+        button.pause_search = False
+
+    if button.dynamic_visualize:
+        show_dynamic(button.dynamic_visualize)
+        
+        # button.dynamic_visualize = False
+        button.search_over = True
+
     
+    if button.cancel_search:
+        print('Cancel Search!')
+        button.clear_path = True
+        print('Path has been cleared')
+        button.clear_path = False
+        button.cancel_search = False
+    
+    elif button.clear_path:
+        print('Path has been cleared')
+        button.clear_path = False
+
+
+
+def button3_function_test(button):
     if button.init_walls:
         print('Init Walls Finished!')
         button.init_walls = False
@@ -39,6 +109,11 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+            elif event.type == pygame.KEYDOWN:
+                # 按下 ESC 键退出程序
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
             elif event.type == pygame.VIDEORESIZE:
                 # panel更新到屏幕中下位置,button随着panel移动
@@ -60,8 +135,6 @@ def main():
                     if button.button_click:
                         panel.dragging_panel = False
                     
-                    button_function_test(button)
-
             # 处理鼠标松开事件
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -72,12 +145,25 @@ def main():
                 panel.mouse_motion_event(screen)
                 button.update_button_pos(panel)
 
+            
             screen.interface.fill(screen.background_color)
             panel.blit_panel(screen)
             button.blit_button(screen)
 
             # Update the display
             pygame.display.update()
+
+
+
+        # if button.dynamic_visualize:
+        #     print('button.dynamic_visualize: ', button.dynamic_visualize)
+        # if button.pause_search:
+        #     print('button.pause_search     : ', button.pause_search)
+        button1_function_test(button)
+        button2_function_test(button)
+        button3_function_test(button)
+
+        
     # Quit Pygame
     pygame.quit()
 
