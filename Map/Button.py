@@ -151,6 +151,17 @@ class Button():
 
 
 #----------------------------------------Button文字与状态更新部分----------------------------------------
+    def reinit_button(self):
+        # print('Trigger search_over')
+        # 如果搜索以及动态展示结束，则修改button2为Clear Path
+        self.search_over = False
+
+        self.text[1]['label'] = 'Clear\nPath'
+        self.text[1]['callback']  = lambda: setattr(self, 'clear_path', True)
+        
+        self.add_text_to_buttons()
+
+
     def execute_button_action(self, index):
         """
         点击button后, 根据当前button状态执行相应操作
@@ -179,19 +190,17 @@ class Button():
 
         if index == 1:
             # Button 2
-            if self.dynamic_visualize:
-                if self.pause_search:
-                    self.dynamic_visualize = False
-                    self.pause_search = False
-                    self.text[index]['label'] = 'Cancel\nSearch'
-                    self.text[index]['callback']  = lambda: setattr(self, 'cancel_search', True)
+            if self.pause_search:
+                self.dynamic_visualize = False
 
-                    # 点击暂停后, start_search 和 restart_search
-                    # 此时button 1文字也对应修改
-                    self.text[index-1]['label'] = 'Resume\nSearch'
-                    self.text[index-1]['callback']  = lambda: setattr(self, 'resume_search', True)
-                else:
-                    pass
+                self.text[index]['label'] = 'Cancel\nSearch'
+                self.text[index]['callback']  = lambda: setattr(self, 'cancel_search', True)
+
+                # 点击暂停后, start_search 和 restart_search
+                # 此时button 1文字也对应修改
+                self.text[index-1]['label'] = 'Resume\nSearch'
+                self.text[index-1]['callback']  = lambda: setattr(self, 'resume_search', True)
+
 
             if self.cancel_search:
                 self.dynamic_visualize = False
@@ -204,12 +213,17 @@ class Button():
                 self.text[index-1]['label'] = 'Start\nSearch'
                 self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
 
-            if self.search_over:
-                # 如果搜索以及动态展示结束，则修改button2为Clear Path
-                self.search_over = False
+            # if self.search_over:
+            #     print('Trigger search_over')
+            #     # 如果搜索以及动态展示结束，则修改button2为Clear Path
+            #     self.search_over = False
 
-                self.text[index]['label'] = 'Clear\nPath'
-                self.text[index]['callback']  = lambda: setattr(self, 'clear_path', True)
+            #     self.text[index]['label'] = 'Clear\nPath'
+            #     self.text[index]['callback']  = lambda: setattr(self, 'clear_path', True)
+
+            #     # 此时button 1文字也对应修改
+            #     self.text[index-1]['label'] = 'Start\nSearch'
+            #     self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
             
             if self.clear_path:
                 # 搜索结束后，点击clear_path全部清空所有路径与已拓展网格
@@ -220,7 +234,7 @@ class Button():
 
                 # 此时button 1文字也对应修改
                 self.text[index-1]['label'] = 'Start\nSearch'
-                print(self.text[index-1]['label'])
+                # print(self.text[index-1]['label'])
                 self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
 
         if index == 2:
@@ -249,6 +263,7 @@ class Button():
             # 如果点击到了button上,此时禁止处理button处的网格
             self.button_click = True
 
+            # 触发对应的button的事件
             for button in self.text:
                 if button['rect'].collidepoint(mouse_pos):
                     button_index = self.text.index(button)

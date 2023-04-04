@@ -1,71 +1,56 @@
 import pygame
 
+
 pygame.init()
 
-win = pygame.display.set_mode((500, 500))
+# Create buttons
+button1 = pygame.Surface((100, 50))
+button1.fill((255, 255, 255))
+button1_rect = button1.get_rect(center=(150, 150))
 
-clock = pygame.time.Clock()
+button2 = pygame.Surface((100, 50))
+button2.fill((255, 255, 255))
+button2_rect = button2.get_rect(center=(350, 150))
 
-font = pygame.font.Font(None, 36)
+screen = pygame.display.set_mode((500, 500))
+running = False
 
-start_button = pygame.Rect(50, 50, 100, 50)
-pause_button = pygame.Rect(200, 50, 100, 50)
-continue_button = pygame.Rect(200, 50, 150, 50)
-cancel_button = pygame.Rect(350, 50, 100, 50)
-
-is_running = False
-is_paused = False
-counter = 0
-stored_counter = 0
+def main_loop():
+    num = 0
+    while True:
+        if running:
+            print(num)
+            num += 1
+            if num > 100:
+                break
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if button1_rect.collidepoint(event.pos):
+                        running = True
+                        main_loop()
+                    elif button2_rect.collidepoint(event.pos):
+                        running = False
 
 while True:
+    screen.fill((0, 0, 0))
+    
+    # Draw buttons
+    screen.blit(button1, button1_rect)
+    screen.blit(button2, button2_rect)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if start_button.collidepoint(event.pos):
-                is_running = True
-            elif pause_button.collidepoint(event.pos):
-                is_paused = True
-                stored_counter = counter
-                start_button.text = 'Continue'
-                pause_button.text = 'Cancel'
-            elif continue_button.collidepoint(event.pos):
-                is_paused = False
-                start_button.text = 'Start'
-                pause_button.text = 'Pause'
-            elif cancel_button.collidepoint(event.pos):
-                is_running = False
-                is_paused = False
-                counter = 0
-                stored_counter = 0
-                start_button.text = 'Start'
-                pause_button.text = 'Pause'
-                
-    win.fill((255, 255, 255))
-    
-    if is_running:
-        for i in range(counter, 101):
-            counter = i
-            text = font.render(str(i), True, (0, 0, 0))
-            win.blit(text, (200, 200))
-            pygame.display.update()
-            clock.tick(10)
-            if is_paused:
-                break
-    
-    start_button.text_surface = font.render(start_button.text, True, (0, 0, 0))
-    pygame.draw.rect(win, (0, 255, 0), start_button)
-    win.blit(start_button.text_surface, (start_button.x + 10, start_button.y + 10))
-    
-    pause_button.text_surface = font.render(pause_button.text, True, (0, 0, 0))
-    pygame.draw.rect(win, (255, 0, 0), pause_button)
-    win.blit(pause_button.text_surface, (pause_button.x + 10, pause_button.y + 10))
-    
-    cancel_button.text_surface = font.render('Cancel', True, (0, 0, 0))
-    pygame.draw.rect(win, (0, 0, 255), cancel_button)
-    win.blit(cancel_button.text_surface, (cancel_button.x + 10, cancel_button.y + 10))
+            if event.button == 1:
+                if button1_rect.collidepoint(event.pos):
+                    running = True
+                    main_loop()
+                elif button2_rect.collidepoint(event.pos):
+                    running = False
     
     pygame.display.update()
-    clock.tick(60)

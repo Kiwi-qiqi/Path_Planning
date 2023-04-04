@@ -36,6 +36,46 @@ countdown = 10
 start_time = None
 pause_time = None
 
+def button1_test(start_button_pressed):
+    if not start_button_pressed:
+        start_button_pressed = True
+        start_time = time.time()
+        pause_time = None
+        start_button_text = font.render("Start", True, BLACK)
+        pause_button_text = font.render("Pause", True, BLACK)
+        return start_time, pause_time, start_button_text, pause_button_text
+
+def button2_test(start_button_pressed, pause_button_pressed, start_time):
+    if start_button_pressed:
+        pause_button_pressed = not pause_button_pressed
+        if pause_button_pressed:
+            pause_button_text = font.render("Cancel", True, BLACK)
+            start_button_text = font.render("Continue", True, BLACK)
+            pause_time = time.time()
+        else:
+            pause_button_text = font.render("Pause", True, BLACK)
+            start_button_text = font.render("Start", True, BLACK)
+            start_time += time.time() - pause_time
+    return start_time, pause_time, start_button_text, pause_button_text
+
+def dynamic_countdown(start_button_pressed, pause_button_pressed, start_time, pause_time):
+    # 计算倒数时间
+    if start_button_pressed and not pause_button_pressed:
+        countdown = 10 - int(time.time() - start_time)
+        if countdown <= 0:
+            countdown = 0
+            start_button_pressed = False
+            start_button_text = font.render("Start", True, BLACK)
+            pause_button_text = font.render("Pause", True, BLACK)
+            start_time = None
+            pause_time = None
+    elif start_button_pressed and pause_button_pressed:
+        countdown = countdown
+    else:
+        countdown = 10
+    
+    return start_time, pause_time, start_button_text, pause_button_text
+
 # 游戏循环
 while True:
     # 检查事件
@@ -62,7 +102,6 @@ while True:
                         pause_button_text = font.render("Pause", True, BLACK)
                         start_button_text = font.render("Start", True, BLACK)
                         start_time += time.time() - pause_time
-
     # 绘制界面
     screen.fill(BLACK)
     countdown_text = font.render(str(countdown), True, WHITE)
@@ -89,7 +128,7 @@ while True:
     elif start_button_pressed and pause_button_pressed:
         countdown = countdown
     else:
-        countdown = 10
+        countdown = 10    
 
     # 退出pygame
 

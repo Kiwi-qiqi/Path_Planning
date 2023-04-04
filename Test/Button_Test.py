@@ -5,7 +5,9 @@ Button Test
 import os
 import sys
 import time
+import random
 import pygame
+import numpy as np
 
 # 将 Map 文件夹所在路径添加到 sys.path 中
 map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
@@ -17,44 +19,18 @@ from Map.Panel   import Panel
 from Map.Button  import Button
 
 #------------------------------------------Test------------------------------------------#
-def countdown_timer(dynamic_visualize):
-    # 定义倒数时长
-    countdown = 10
-    start_time = time.time()
-    pause_time = None
-
-    while countdown > 0:
-        if dynamic_visualize:
-            countdown = 10 - int(time.time() - start_time)
-            print('倒计时: ', countdown)
-            if countdown <= 0:
-                # 计时结束
-                dynamic_visualize = False
-
-        else:
-            pause_time = time.time()
-            start_time += time.time() - pause_time
-            countdown = 10 - int(time.time() - start_time)
-            print('倒计时: ', countdown)
-
-def show_dynamic(dynamic_visualize):
-    for i in range(100):
-        if dynamic_visualize:
-            pygame.time.delay(100)
-            print(i)
-            if i >= 9:
-                dynamic_visualize = False
-                break
-        else:
-            break
-
-
-def button1_function_test(button):
+# --------------------Button1--------------------
+def button_function_test(button):
+    global random_list
+    global count
     if button.start_search:
         print('Start Search--Algorithm!')
+        count = 0
+        random_list = list(range(random.randint(100,200)))
         button.start_search = False
         
     elif button.restart_search:
+        count = 0
         print('Restart Search--Algorithm!')
         button.restart_search = False
 
@@ -62,32 +38,90 @@ def button1_function_test(button):
         print('Resume Search--Algorithm!')
         button.resume_search = False
 
-
-def button2_function_test(button):
+# --------------------Button2--------------------
     if button.pause_search:
         # 暂停可视化的过程
-        print('Pause Search!')
+        print('Pause Search!', count)
         button.dynamic_visualize = False
         button.pause_search = False
 
-    if button.dynamic_visualize:
-        show_dynamic(button.dynamic_visualize)
-        
-        # button.dynamic_visualize = False
-        button.search_over = True
+    if button.dynamic_visualize and not button.pause_search:
+        pygame.time.delay(10)
+        print('Searching!', random_list[count])
+        count += 1
+        if count >= len(random_list):
+            count = 0
+            button.dynamic_visualize = False
+            button.search_over = True
+            if button.search_over:
+                button.reinit_button()
 
-    
     if button.cancel_search:
         print('Cancel Search!')
         button.clear_path = True
-        print('Path has been cleared')
-        button.clear_path = False
         button.cancel_search = False
     
     elif button.clear_path:
+        count = 0
         print('Path has been cleared')
         button.clear_path = False
 
+# --------------------Button3--------------------
+    if button.init_walls:
+        print('Init Walls Finished!')
+        button.init_walls = False
+    
+    if button.clear_walls:
+        print('Walls Cleared!')
+        button.clear_walls = False
+
+
+def button1_function_test(button, count):
+    if button.start_search:
+        count = 0
+        print('Start Search--Algorithm!')
+        random_list = list(range(random.randint(100,200)))
+        button.start_search = False
+        
+    elif button.restart_search:
+        count = 0
+        print('Restart Search--Algorithm!')
+        button.restart_search = False
+
+    elif button.resume_search:
+        print('Resume Search--Algorithm!')
+        button.resume_search = False
+    return count
+
+def button2_function_test(button, count):
+    if button.pause_search:
+        # 暂停可视化的过程
+        print('Pause Search!', count)
+        button.dynamic_visualize = False
+        button.pause_search = False
+
+    if button.dynamic_visualize and not button.pause_search:
+        pygame.time.delay(10)
+        print('Searching!', count)
+        count += 1
+        if count >= 100:
+            count = 0
+            button.dynamic_visualize = False
+            button.search_over = True
+
+            
+
+    if button.cancel_search:
+        print('Cancel Search!')
+        button.clear_path = True
+        button.cancel_search = False
+    
+    elif button.clear_path:
+        count = 0
+        print('Path has been cleared')
+        button.clear_path = False
+
+    return count
 
 
 def button3_function_test(button):
@@ -104,6 +138,7 @@ def main():
     panel       = Panel(screen)
     button      = Button(panel)
 
+    count = 0
     running = True
     while running:
         for event in pygame.event.get():
@@ -153,15 +188,21 @@ def main():
             # Update the display
             pygame.display.update()
 
+        button_function_test(button)
+        # count = button1_function_test(button, count)
+        # count = button2_function_test(button, count)
+        # button3_function_test(button)
 
-
+        # print('button.dynamic_visualize: ', button.dynamic_visualize,
+        #       'button.search_over      : ', button.search_over)
+        # if button.dynamic_visualize and not button.pause_search:
+        
         # if button.dynamic_visualize:
         #     print('button.dynamic_visualize: ', button.dynamic_visualize)
         # if button.pause_search:
         #     print('button.pause_search     : ', button.pause_search)
-        button1_function_test(button)
-        button2_function_test(button)
-        button3_function_test(button)
+
+            
 
         
     # Quit Pygame
