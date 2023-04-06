@@ -67,6 +67,8 @@ class GridMap():
         self.end_color          = FIREBRICK_RED
         self.obstalce_color     = JET_BLACK
 
+        self.expand_grid_color  = MELLOW_GREEN
+
     def init_start_end_point(self):
         # Initialize the start and end cells
         # 初始化起点和终点单元格
@@ -78,11 +80,10 @@ class GridMap():
         # 初始化拖动起点和终点单元格的变量
         self.dragging_start     = False
         self.dragging_end       = False
-        self.init_random_obs    = False
-        self.clear_obstacles    = False
+        
         self.drawing_obstacle   = False    # 初始化鼠标滑动选中单元格作为障碍物
         self.delete_obstacle    = False    # 初始化鼠标滑动选中单元格实现障碍物的删除
-        self.obstacle_processing= True     # 初始化时 是可以鼠标单击实现障碍物处理
+        # self.obstacle_processing= True     # 初始化时 是可以鼠标单击实现障碍物处理
 
 
     def init_boundary(self):
@@ -92,6 +93,13 @@ class GridMap():
     def init_obstacles(self):
         # 初始化障碍物单元格数据
         self.obstacles = set()
+
+    def init_expand_grid(self):
+        # 初始化算法拓展单元格数据
+        self.expand_grid = []
+
+        self.expanded_grid = []
+
 
     def set_vaild_range(self):
         # 设置有效范围
@@ -113,7 +121,8 @@ class GridMap():
         # 设置障碍物密度density
         while len(self.obstacles) < N * density:
             point = tuple(np.random.randint(low=min_range, high=max_range, size=2))
-            self.obstacles.add(point)
+            if point != self.start_point and point != self.end_point:
+                self.obstacles.add(point)
 
     def initialize(self):
         self.init_color()
@@ -121,7 +130,9 @@ class GridMap():
         self.init_bool_state()
         self.init_boundary()
         self.init_obstacles()
+        self.init_expand_grid()
         self.set_vaild_range()
+        
 
     def update_grid(self, screen):
         # 窗口变化后, 对网格地图进行更新
@@ -143,6 +154,16 @@ class GridMap():
                            self.cell_size - 1, self.cell_size - 1)
         return rect
     
+    def draw_expand_grid(self, expand_grid_list, screen):
+        for point in expand_grid_list:
+            expand_grid_rect = self.set_rect(point)
+            pygame.draw.rect(screen.interface, self.expand_grid_color, expand_grid_rect, 0)
+
+    def draw_expand_point(self, point, screen):
+        expand_grid_rect = self.set_rect(point)
+        pygame.draw.rect(screen.interface, self.expand_grid_color, expand_grid_rect, 0)
+        # pygame.display.update()
+
     def draw_grid(self, screen):
         # Draw the grid
         # 绘制网格
@@ -173,6 +194,10 @@ class GridMap():
                 else:
                     free_space_rect = self.set_rect((i,j))
                     pygame.draw.rect(screen.interface, self.free_space_color, free_space_rect, 0)
+        for point in self.expanded_grid:
+            expand_grid_rect = self.set_rect(point)
+            pygame.draw.rect(screen.interface, self.expand_grid_color, expand_grid_rect, 0)
+
 
 
     def verify_point(self, point):
@@ -236,7 +261,7 @@ class GridMap():
         因此需要根据地图环境以及障碍物信息, 对起点与终点网格位置进行更新
         更新策略：
             1.窗口变化时判断起点or终点是否在界面内
-            2.若不在界面内，则给出默认的初始化点
+            2.若不在界面内, 则给出默认的初始化点
             3.如果这个点与障碍物的点重合, 则查找自由区域点进行更新
         """
         # print("re-initializing start and end point")
@@ -285,23 +310,31 @@ class GridMap():
             mouse_pos[1] >= point[1] * self.cell_size and mouse_pos[1] < (point[1] + 1) * self.cell_size):
             return True    
 
-    def mouse_button_down_event(self):
+    def button_event_proc(self, button):
+        if button.init_walls:
+            self.set_obstacles()
+            button.init_walls = False
+        
+        if button.clear_walls:
+            self.obstacles.clear()
+            button.clear_walls = False
+
+    def mouse_button_down_event(self, panel, button):
         mouse_pos = pygame.mouse.get_pos()
         mouse_point = (mouse_pos[0] // self.cell_size, mouse_pos[1] // self.cell_size)
-        
-        # Check if the mouse is on the start point
-        if self.mouse_pose_is_start_or_end(mouse_pos, self.start_point):
-            # Start dragging the start point
-            self.dragging_start = True
-        
-        # Check if the mouse is on the end point
-        elif self.mouse_pose_is_start_or_end(mouse_pos, self.end_point):
-            # Start dragging the end point
-            self.dragging_end = True
+        if panel.gridmap_process_obstacle:
+            # Check if the mouse is on the start point
+            if self.mouse_pose_is_start_or_end(mouse_pos, self.start_point):
+                # Start dragging the start point
+                self.dragging_start = True
+            
+            # Check if the mouse is on the end point
+            elif self.mouse_pose_is_start_or_end(mouse_pos, self.end_point):
+                # Start dragging the end point
+                self.dragging_end = True
 
-        # 检查鼠标是否在自由区域
-        elif mouse_point not in self.boundary:
-            if self.obstacle_processing:
+            # 检查鼠标是否在自由区域
+            elif mouse_point not in self.boundary:
                 if mouse_point not in self.obstacles:
                     # 如果当前单元格不在障碍物集合中, 则将其加入集合中
                     self.obstacles.add(mouse_point)
@@ -311,6 +344,10 @@ class GridMap():
                     # 如果当前单元格为障碍物, 则将其从障碍物集合删除
                     self.obstacles.remove(mouse_point)
                     self.delete_obstacle = True
+        
+        # 根据button3的点击, 设置障碍物的初始化与清除
+        self.button_event_proc(button)
+        
 
     def mouse_button_up_event(self):
         self.dragging_start     = False
@@ -348,7 +385,9 @@ class GridMap():
                point not in self.obstacles and \
                point != self.start_point and\
                point != self.end_point:
+                print('add a point: ', point)
                 self.obstacles.add(point)
+                print('length of obstacles: ', len(self.obstacles))
 
 
         elif self.delete_obstacle:
@@ -357,4 +396,6 @@ class GridMap():
                point in self.obstacles and \
                point != self.start_point and\
                point != self.end_point:
+                print('del a point: ', point)
                 self.obstacles.remove(point)
+                print('length of obstacles: ', len(self.obstacles))

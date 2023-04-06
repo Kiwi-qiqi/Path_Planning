@@ -62,8 +62,8 @@ class Panel():
             self.dragging_panel            = True
 
             self.gridmap_process_obstacle = False
-            self.gridmap_drawing_obstacle = False
-            self.gridmap_delete_obstacle  = False
+            # self.gridmap_drawing_obstacle = False
+            # self.gridmap_delete_obstacle  = False
 
             # 计算鼠标点击当前位置相对panel中心位置移动了多少
             # 后续根据偏置量重新得到panel的位置
@@ -76,8 +76,8 @@ class Panel():
         self.dragging_panel = False
 
         self.gridmap_process_obstacle = True
-        self.gridmap_drawing_obstacle = True
-        self.gridmap_delete_obstacle  = True
+        # self.gridmap_drawing_obstacle = True
+        # self.gridmap_delete_obstacle  = True
 
     def mouse_motion_event(self, screen):
         if self.dragging_panel:

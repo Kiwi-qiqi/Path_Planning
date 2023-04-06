@@ -46,7 +46,7 @@ def button_function_test(button):
         button.pause_search = False
 
     if button.dynamic_visualize and not button.pause_search:
-        pygame.time.delay(10)
+        pygame.time.delay(50)
         print('Searching!', random_list[count])
         count += 1
         if count >= len(random_list):
@@ -75,63 +75,6 @@ def button_function_test(button):
         print('Walls Cleared!')
         button.clear_walls = False
 
-
-def button1_function_test(button, count):
-    if button.start_search:
-        count = 0
-        print('Start Search--Algorithm!')
-        random_list = list(range(random.randint(100,200)))
-        button.start_search = False
-        
-    elif button.restart_search:
-        count = 0
-        print('Restart Search--Algorithm!')
-        button.restart_search = False
-
-    elif button.resume_search:
-        print('Resume Search--Algorithm!')
-        button.resume_search = False
-    return count
-
-def button2_function_test(button, count):
-    if button.pause_search:
-        # 暂停可视化的过程
-        print('Pause Search!', count)
-        button.dynamic_visualize = False
-        button.pause_search = False
-
-    if button.dynamic_visualize and not button.pause_search:
-        pygame.time.delay(10)
-        print('Searching!', count)
-        count += 1
-        if count >= 100:
-            count = 0
-            button.dynamic_visualize = False
-            button.search_over = True
-
-            
-
-    if button.cancel_search:
-        print('Cancel Search!')
-        button.clear_path = True
-        button.cancel_search = False
-    
-    elif button.clear_path:
-        count = 0
-        print('Path has been cleared')
-        button.clear_path = False
-
-    return count
-
-
-def button3_function_test(button):
-    if button.init_walls:
-        print('Init Walls Finished!')
-        button.init_walls = False
-    
-    if button.clear_walls:
-        print('Walls Cleared!')
-        button.clear_walls = False
 
 def main():
     screen      = Screen(title="Button Test", background_color=PEARL_WHITE)
@@ -189,6 +132,7 @@ def main():
             pygame.display.update()
 
         button_function_test(button)
+
         # count = button1_function_test(button, count)
         # count = button2_function_test(button, count)
         # button3_function_test(button)
@@ -202,9 +146,7 @@ def main():
         # if button.pause_search:
         #     print('button.pause_search     : ', button.pause_search)
 
-            
 
-        
     # Quit Pygame
     pygame.quit()
 

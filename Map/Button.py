@@ -69,9 +69,9 @@ class Button():
     def init_text(self):
         # 定义按钮列表和点击事件    setattr() 函数, 用来设置对象的属性值
         self.text = [
-            {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: setattr(self, 'start_search', True)},
-            {'label': 'Pause\nSearch', 'rect': None, 'callback': lambda: setattr(self, 'pause_search', True)},
-            {'label': 'Init\nWalls',   'rect': None, 'callback': lambda: setattr(self, 'init_walls', True)}]
+            {'label': 'Start\nSearch', 'rect': None, 'callback': lambda: setattr(self, 'start_search', True), 'color': self.text_color},
+            {'label': 'Pause\nSearch', 'rect': None, 'callback': lambda: setattr(self, 'pause_search', True), 'color': GRAY},
+            {'label': 'Init\nWalls',   'rect': None, 'callback': lambda: setattr(self, 'init_walls', True)  , 'color': self.text_color}]
         
     def initialize(self):
         self.init_pygame()
@@ -98,7 +98,7 @@ class Button():
 
         y = (button.get_height() - total_height) // 2  # 计算垂直居中的偏移量
         for line in text_lines:
-            button_text = self.font.render(line, True, self.text_color)
+            button_text = self.font.render(line, True, self.text[index]['color'])
             # 将文本渲染到按钮上, 并垂直居中显示
             button_text_rect = button_text.get_rect(center=(button.get_width() // 2, y + line_height // 2))
             button.blit(button_text, button_text_rect)
@@ -113,6 +113,7 @@ class Button():
         self.button_surfaces    = []
 
         for i in range(3):
+            
             button = self.button_with_text(i)
             self.button_surfaces.append(button)
     
@@ -173,6 +174,9 @@ class Button():
                 self.dynamic_visualize = True
                 self.text[index]['label'] = 'Restart\nSearch'
                 self.text[index]['callback']  = lambda: setattr(self, 'restart_search', True)
+
+                self.text[index+1]['color'] = self.text_color
+
             
             if self.restart_search or self.state_changed:
                 if self.restart_search:
@@ -207,6 +211,7 @@ class Button():
                 self.clear_path = True
                 # 取消搜索后，所有路径与已拓展网格全部清空
                 self.text[index]['label'] = 'Pause\nSearch'
+                self.text[index]['color'] = GRAY
                 self.text[index]['callback']  = lambda: setattr(self, 'pause_search', True)
 
                 # 此时button 1文字也对应修改
@@ -228,13 +233,14 @@ class Button():
             if self.clear_path:
                 # 搜索结束后，点击clear_path全部清空所有路径与已拓展网格
                 self.dynamic_visualize = False
-                self.clear_path = True
+                # self.clear_path = False
+                self.text[index]['label'] = 'Pause\nSearch'
                 self.text[index]['label'] = 'Pause\nSearch'
                 self.text[index]['callback']  = lambda: setattr(self, 'pause_search', True)
 
                 # 此时button 1文字也对应修改
                 self.text[index-1]['label'] = 'Start\nSearch'
-                # print(self.text[index-1]['label'])
+                self.text[index]['color'] = GRAY
                 self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
 
         if index == 2:
@@ -251,6 +257,16 @@ class Button():
                 # self.clear_walls = False 这一步在执行完障碍物初始化后执行，在gridmap中
                 self.text[index]['label'] = 'Init\nWalls'
                 self.text[index]['callback']  = lambda: setattr(self, 'init_walls', True)
+
+    def get_gridmap_obstacles(self, gridmap):
+        # 根据网格是否有障碍物来判断修改button 3的文字
+        if len(gridmap.obstacles) > 0:
+            self.text[2]['label'] = 'Clear\nWalls'
+            self.text[2]['callback']  = lambda: setattr(self, 'clear_walls', True)
+        if len(gridmap.obstacles) == 0:
+            self.text[2]['label'] = 'Init\nWalls'
+            self.text[2]['callback']  = lambda: setattr(self, 'init_walls', True)
+        self.add_text_to_buttons()
 
 
     def button_click_event(self):
