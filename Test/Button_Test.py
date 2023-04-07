@@ -26,7 +26,7 @@ def button_function_test(button):
     if button.start_search:
         print('Start Search--Algorithm!')
         count = 0
-        random_list = list(range(random.randint(100,200)))
+        random_list = list(range(random.randint(100, 200)))
         button.start_search = False
         
     elif button.restart_search:

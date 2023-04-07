@@ -4,6 +4,7 @@ GridMap Test
 """
 import os
 import sys
+import time
 import random
 import pygame
 
@@ -35,28 +36,25 @@ def random_expand_grip(grid_map):
     while generate_expand_grid:
         # print("Generating")
         parent_node = grid_map.expand_grid[-1]
-
         if index is not None:
             parent_node = grid_map.expand_grid[index-1]
+                
+        # if index == 0:
+        #     generate_expand_grid = False
+        #     print("Cannot Expand From Start Point!\
+        #            \nPlease Reset Your Start Point or Obstacles")
 
         motion_has_explored = set()
 
-        # for i in range(len(motions)):
         while True:
             i = random.randint(0, 7)
             if motions[i] not in motion_has_explored:
                 # 如果这种拓展方式未使用过，则继续
                 motion_has_explored.add(motions[i])
-                # print('motion_has_explored', len(motion_has_explored))
-                # print((motion_has_explored))
 
                 son_node_x = parent_node[0] + motions[i][0]
                 son_node_y = parent_node[1] + motions[i][1]
                 son_node = (son_node_x, son_node_y)
-                # print('motion: ', motions[i])
-                # print('searching in current posotion', parent_node)
-                # print('searching in posotion'        , son_node)
-
             else:
                 continue
 
@@ -65,18 +63,20 @@ def random_expand_grip(grid_map):
                 # print('change parent node')
                 index = grid_map.expand_grid.index(parent_node)
                 break
-                
-            if son_node != grid_map.start_point   and \
-               son_node not in grid_map.obstacles and \
+            
+            # if son_node != grid_map.start_point   and \
+            if son_node not in grid_map.obstacles and \
                son_node not in grid_map.boundary  and \
                grid_map.verify_point(son_node)    and \
                son_node not in grid_map.expand_grid:
                 # 由于当前拓展方式随机，会陷入边角区域无法进行下一步拓展
                 # 且设置了节点不能重复
-                
+                # if parent_node == grid_map.start_point:
+                #     break
+
                 if son_node == grid_map.end_point:
                     # print('Find End Point')
-                    grid_map.expand_grid.append(son_node)
+                    # grid_map.expand_grid.append(son_node)
                     generate_expand_grid = False
                     grid_map.expand_grid.pop(0)
                     break
@@ -90,6 +90,13 @@ def random_expand_grip(grid_map):
             
             else:
                 continue
+    
+    # print(len(grid_map.expand_grid), grid_map.expand_grid)
+    # for node in grid_map.expand_grid:
+    #     if node == grid_map.start_point:
+    #         print('Start Point Has Been Expaned')
+    #         grid_map.expand_grid.remove(node)
+
 
 
 
@@ -99,8 +106,8 @@ def button_function_test(button, grid_map, screen):
     if button.start_search:
         print('Start Search--Algorithm!')
         random_expand_grip(grid_map)    # 扩展的网格
-        print('Length of expand_grid: ', 
-              len(grid_map.expand_grid))
+        # print('Length of expand_grid: ', 
+        #       len(grid_map.expand_grid))
         count = 0
         button.start_search = False
         
@@ -124,18 +131,22 @@ def button_function_test(button, grid_map, screen):
         button.pause_search = False
 
     if button.dynamic_visualize and not button.pause_search:
-        # pygame.time.delay(10)
+        pygame.time.delay(25)
+        # time.sleep(0.1)
         grid_map.draw_expand_point(grid_map.expand_grid[count], screen)
-        grid_map.expanded_grid = grid_map.expand_grid[:count]
+        grid_map.expanded_grid = grid_map.expand_grid[:count+1]
         count += 1
+        pygame.display.update()
 
         if count >= len(grid_map.expand_grid):
             print('Grid Expanded Finished')
             count = 0
-            button.dynamic_visualize = False
             button.search_over = True
             if button.search_over:
-                button.reinit_button()
+                button.reinit_button(screen)
+                # print('button 2 label: \n', button.text[1]['label'])
+            button.dynamic_visualize = False
+            
                 
     if button.cancel_search:
         print('Cancel Search!')
@@ -159,8 +170,6 @@ def button_function_test(button, grid_map, screen):
     if button.clear_walls:
         print('Walls Cleared!')
         button.clear_walls = False
-
-
 
 #------------------------------------------Test------------------------------------------#
 def main():
@@ -222,22 +231,24 @@ def main():
                 button.update_button_pos(panel)
                 grid_map.mouse_motion_event()
 
-            print(button.pause_search)
-            button.get_gridmap_obstacles(grid_map)
+            # button_function_test(button, grid_map, screen)
 
-
-            screen.interface.fill(screen.background_color)
-            grid_map.draw_grid(screen)
-            panel.blit_panel(screen)
-            button.blit_button(screen)
-
-            button_function_test(button, grid_map, screen)
-
+            # button.get_gridmap_obstacles(grid_map)
+            # screen.interface.fill(screen.background_color)
+            # grid_map.draw_grid(screen)
+            # panel.blit_panel(screen)
+            # button.blit_button(screen)
 
             # Update the display
             pygame.display.update()
 
-        # button_function_test(button, grid_map, screen)
+        button.get_gridmap_obstacles(grid_map)
+        screen.interface.fill(screen.background_color)
+        grid_map.draw_grid(screen)
+        panel.blit_panel(screen)
+        button.blit_button(screen)
+        button_function_test(button, grid_map, screen)
+
     # Quit Pygame
     pygame.quit()
 

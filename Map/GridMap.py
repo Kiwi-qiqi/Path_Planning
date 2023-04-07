@@ -154,10 +154,11 @@ class GridMap():
                            self.cell_size - 1, self.cell_size - 1)
         return rect
     
-    def draw_expand_grid(self, expand_grid_list, screen):
-        for point in expand_grid_list:
-            expand_grid_rect = self.set_rect(point)
-            pygame.draw.rect(screen.interface, self.expand_grid_color, expand_grid_rect, 0)
+    # def draw_expand_grid(self, expand_grid_list, screen):
+    #     for point in expand_grid_list:
+    #         expand_grid_rect = self.set_rect(point)
+    #         pygame.draw.rect(screen.interface, self.expand_grid_color, expand_grid_rect, 0)
+    #         pygame.display.update()
 
     def draw_expand_point(self, point, screen):
         expand_grid_rect = self.set_rect(point)
@@ -385,9 +386,9 @@ class GridMap():
                point not in self.obstacles and \
                point != self.start_point and\
                point != self.end_point:
-                print('add a point: ', point)
+                # print('add a point: ', point)
                 self.obstacles.add(point)
-                print('length of obstacles: ', len(self.obstacles))
+                # print('length of obstacles: ', len(self.obstacles))
 
 
         elif self.delete_obstacle:

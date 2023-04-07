@@ -116,8 +116,7 @@ class Button():
             
             button = self.button_with_text(i)
             self.button_surfaces.append(button)
-    
-
+            
     def create_button(self, panel):
         for i, button in enumerate(self.button_surfaces):
             button_rect = button.get_rect()
@@ -149,18 +148,21 @@ class Button():
     def blit_button(self, screen):
         for i in range(len(self.buttons_rect)):
             screen.interface.blit(self.button_surfaces[i], self.buttons_rect[i])
-
+            # pygame.display.update()
 
 #----------------------------------------Button文字与状态更新部分----------------------------------------
-    def reinit_button(self):
+    def reinit_button(self, screen):
         # print('Trigger search_over')
         # 如果搜索以及动态展示结束，则修改button2为Clear Path
         self.search_over = False
 
         self.text[1]['label'] = 'Clear\nPath'
         self.text[1]['callback']  = lambda: setattr(self, 'clear_path', True)
-        
+        # print('You should clear path')
         self.add_text_to_buttons()
+        screen.interface.blit(self.button_surfaces[1], self.buttons_rect[1])
+        pygame.display.update()
+
 
 
     def execute_button_action(self, index):
@@ -177,11 +179,14 @@ class Button():
 
                 self.text[index+1]['color'] = self.text_color
 
-            
-            if self.restart_search or self.state_changed:
-                if self.restart_search:
-                    self.dynamic_visualize = True
-                self.text[index]['label'] = 'Start\nSearch'
+            if self.restart_search:
+                self.dynamic_visualize = True
+                self.text[index]['callback']  = lambda: setattr(self, 'restart_search', True)
+
+                self.text[index+1]['label'] = 'Pause\nSearch'
+
+            if self.state_changed:
+                # self.text[index]['label'] = 'Start\nSearch'
                 self.text[index]['callback']  = lambda: setattr(self, 'start_search', True)
 
             if self.resume_search:
@@ -235,12 +240,11 @@ class Button():
                 self.dynamic_visualize = False
                 # self.clear_path = False
                 self.text[index]['label'] = 'Pause\nSearch'
-                self.text[index]['label'] = 'Pause\nSearch'
+                self.text[index]['color'] = GRAY
                 self.text[index]['callback']  = lambda: setattr(self, 'pause_search', True)
 
                 # 此时button 1文字也对应修改
                 self.text[index-1]['label'] = 'Start\nSearch'
-                self.text[index]['color'] = GRAY
                 self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
 
         if index == 2:

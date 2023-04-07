@@ -104,3 +104,4 @@ class Panel():
     def blit_panel(self, screen):
         # pygame.draw.rect(screen.interface, self.panel_rect)
         screen.interface.blit(self.panel, self.panel_rect)
+        # pygame.display.update()
