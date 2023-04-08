@@ -4,7 +4,6 @@ GridMap Test
 """
 import os
 import sys
-import time
 import random
 import pygame
 
@@ -38,11 +37,6 @@ def random_expand_grip(grid_map):
         parent_node = grid_map.expand_grid[-1]
         if index is not None:
             parent_node = grid_map.expand_grid[index-1]
-                
-        # if index == 0:
-        #     generate_expand_grid = False
-        #     print("Cannot Expand From Start Point!\
-        #            \nPlease Reset Your Start Point or Obstacles")
 
         motion_has_explored = set()
 
@@ -231,14 +225,6 @@ def main():
                 button.update_button_pos(panel)
                 grid_map.mouse_motion_event()
 
-            # button_function_test(button, grid_map, screen)
-
-            # button.get_gridmap_obstacles(grid_map)
-            # screen.interface.fill(screen.background_color)
-            # grid_map.draw_grid(screen)
-            # panel.blit_panel(screen)
-            # button.blit_button(screen)
-
             # Update the display
             pygame.display.update()
 
@@ -251,7 +237,6 @@ def main():
 
     # Quit Pygame
     pygame.quit()
-
 
 if __name__ == "__main__":
     main()

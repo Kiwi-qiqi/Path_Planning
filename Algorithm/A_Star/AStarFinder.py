@@ -38,7 +38,9 @@ class AStarFinder:
 
         # 初始化输出路径
         self.path = []
-        self.init_heapq()
+
+        # 运行
+        self.astar_finder()
 
     def init_heapq(self):
         self.heapq = heapq
@@ -162,28 +164,27 @@ class AStarFinder:
             current_node = current_node.parent
             self.path = list(reversed(self.path))
         
-    def astar_finder(self, button, diagonal=True):
+    def astar_finder(self, diagonal=True):
         self.init_heapq()
 
-        while button.Start_Search:
-            while self.open_list:
+        while self.open_list:
 
-                # 当点击开始搜索时, 程序开始
-                if len(self.open_list) == 0 and len(self.path) == 0:
-                    print("Unable to find a path, please check if the starting point or the end point is reachable.")
-                    break
-                
-                # 获取当前队列中总代价最小的节点
-                current_node = heapq.heappop(self.open_list)
+            # 当点击开始搜索时, 程序开始
+            if len(self.open_list) == 0 and len(self.path) == 0:
+                print("Unable to find a path, please check if the starting point or the end point is reachable.")
+                break
+            
+            # 获取当前队列中总代价最小的节点
+            current_node = heapq.heappop(self.open_list)
 
-                if self.is_end_point(current_node):
-                    # print("The starting point and ending point overlap. Please reset and search for a path again.")
-                    # 反推得到路径
-                    self.get_path(current_node)
+            if self.is_end_point(current_node):
+                # print("The starting point and ending point overlap. Please reset and search for a path again.")
+                # 反推得到路径
+                self.get_path(current_node)
 
-                # 根据当前节点进行direction的拓展, 查找邻节点
-                self.get_neighbor()
-                self.expand_node(current_node)
+            # 根据当前节点进行direction的拓展, 查找邻节点
+            self.get_neighbor()
+            self.expand_node(current_node)
 
 
 

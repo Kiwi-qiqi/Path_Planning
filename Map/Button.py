@@ -153,7 +153,7 @@ class Button():
 #----------------------------------------Button文字与状态更新部分----------------------------------------
     def reinit_button(self, screen):
         # print('Trigger search_over')
-        # 如果搜索以及动态展示结束，则修改button2为Clear Path
+        # 如果搜索以及动态展示结束, 则修改button2为Clear Path
         self.search_over = False
 
         self.text[1]['label'] = 'Clear\nPath'
@@ -164,7 +164,6 @@ class Button():
         pygame.display.update()
 
 
-
     def execute_button_action(self, index):
         """
         点击button后, 根据当前button状态执行相应操作
@@ -172,7 +171,7 @@ class Button():
         if index == 0:
             # Button 1
             if self.start_search:
-                # start_search后，文字改变，且开始搜索路径
+                # start_search后, 文字改变, 且开始搜索路径
                 self.dynamic_visualize = True
                 self.text[index]['label'] = 'Restart\nSearch'
                 self.text[index]['callback']  = lambda: setattr(self, 'restart_search', True)
@@ -214,7 +213,7 @@ class Button():
             if self.cancel_search:
                 self.dynamic_visualize = False
                 self.clear_path = True
-                # 取消搜索后，所有路径与已拓展网格全部清空
+                # 取消搜索后, 所有路径与已拓展网格全部清空
                 self.text[index]['label'] = 'Pause\nSearch'
                 self.text[index]['color'] = GRAY
                 self.text[index]['callback']  = lambda: setattr(self, 'pause_search', True)
@@ -225,7 +224,7 @@ class Button():
 
             # if self.search_over:
             #     print('Trigger search_over')
-            #     # 如果搜索以及动态展示结束，则修改button2为Clear Path
+            #     # 如果搜索以及动态展示结束, 则修改button2为Clear Path
             #     self.search_over = False
 
             #     self.text[index]['label'] = 'Clear\nPath'
@@ -236,7 +235,7 @@ class Button():
             #     self.text[index-1]['callback']  = lambda: setattr(self, 'start_search', True)
             
             if self.clear_path:
-                # 搜索结束后，点击clear_path全部清空所有路径与已拓展网格
+                # 搜索结束后, 点击clear_path全部清空所有路径与已拓展网格
                 self.dynamic_visualize = False
                 # self.clear_path = False
                 self.text[index]['label'] = 'Pause\nSearch'
@@ -253,12 +252,12 @@ class Button():
             # 初始页面为Init Walls, 此时点击将生成随机障碍物, 而后按钮变为Clear Walls
             # 当存在障碍物时, 按钮状态为Clear Walls, 此时点击将清除所有的walls, 并将按钮名称改为'Init Walls'
             if self.init_walls:
-                # self.init_walls = False 这一步在执行完障碍物初始化后执行，在gridmap中
+                # self.init_walls = False 这一步在执行完障碍物初始化后执行, 在gridmap中
                 self.text[index]['label'] = 'Clear\nWalls'
                 self.text[index]['callback']  = lambda: setattr(self, 'clear_walls', True)
             
             if self.clear_walls:
-                # self.clear_walls = False 这一步在执行完障碍物初始化后执行，在gridmap中
+                # self.clear_walls = False 这一步在执行完障碍物初始化后执行, 在gridmap中
                 self.text[index]['label'] = 'Init\nWalls'
                 self.text[index]['callback']  = lambda: setattr(self, 'init_walls', True)
 

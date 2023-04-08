@@ -7,7 +7,6 @@ Function:
 import os
 import sys
 import pygame
-import textwrap
 
 # map_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Map'))
 map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
@@ -19,14 +18,17 @@ class Path():
     """
     创建Path类, 用于可视化规划算法的轨迹
     """
-    def __init__(self, screen, linewidth=4):
+    def __init__(self, linewidth=4):
         self.linewidth  = linewidth
-        self.screen     = screen
-
+        
         self.initialize()
 
     def init_color(self):
-        self.color = YELLOW_ANTIQUE
+        self.color = SIENNA
+
+    def init_path(self):
+        self.test_path   = []
+        self.tested_path = []
 
     def init_bool_state(self):
         self.start_search   = False
@@ -37,11 +39,11 @@ class Path():
 
     def initialize(self):
         self.init_color()
+        self.init_path()
         self.init_pygame()
 
-    def plot_path(self, path):
-        for i in range(len(path)-1):
-            start_node = path[i]
-            end_node   = path[i+1]
-            pygame.draw.line(self.screen.interface, self.color, start_node, end_node, self.linewidth)
-
+    def plot_test_path(self, screen):
+        for i in range(len(self.test_path)-1):
+            start_node = self.test_path[i]
+            end_node   = self.test_path[i+1]
+            pygame.draw.line(screen.interface, self.color, start_node, end_node, self.linewidth)

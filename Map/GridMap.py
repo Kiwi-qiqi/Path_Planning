@@ -51,7 +51,7 @@ class GridMap():
             cell_size:      每个网格单元格的大小（以像素为单位）, 默认为25
             screen   :      屏幕, 默认为宽度*高度=1000*800
         """
-        self.cell_size      = cell_size
+        self.cell_size   = cell_size
         # 计算网格的尺寸
         self.grid_width  = screen.screen_width  // self.cell_size
         self.grid_height = screen.screen_height // self.cell_size
