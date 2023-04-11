@@ -232,6 +232,8 @@ def main():
         panel.blit_panel(screen)
         button.blit_button(screen)
 
+        if len(path.test_path) != 0:
+            print('Plot Path? ', path.test_path )
         if not button.dynamic_visualize:
             path.plot_test_path(screen)
             pygame.display.update()

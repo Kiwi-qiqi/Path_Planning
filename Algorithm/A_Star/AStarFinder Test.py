@@ -7,8 +7,10 @@ import sys
 import random
 import pygame
 
+sys.path.append(os.getcwd())
+
 # 将 Map 文件夹所在路径添加到 sys.path 中
-map_path = os.path.dirname(os.path.abspath(__file__)) + r"/../../Path_Planning/"
+map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../Path_Planning/"
 sys.path.append(map_path)
 print(map_path)
 
@@ -105,7 +107,9 @@ def button_function_test(button, grid_map, screen, path):
     if button.start_search:
         print('Start Search--Algorithm!')
         astar = AStarFinder(grid_map)
+        # print('Path: ', astar.path)
         path.test_path = astar.path
+        # print('path.test_path: ', path.test_path)
         # create_test_path(grid_map.cell_size, path)
         random_expand_grip(grid_map)
         
@@ -139,7 +143,6 @@ def button_function_test(button, grid_map, screen, path):
         pygame.display.update()
 
         if count >= len(grid_map.expand_grid):
-            path.tested_path = path.test_path
             print('Grid Expanded Finished')
             count = 0
             button.search_over = True
@@ -239,8 +242,13 @@ def main():
         panel.blit_panel(screen)
         button.blit_button(screen)
 
+        # if len(path.test_path) != 0:
+            # print('Plot Path? ', path.test_path )
+
         if not button.dynamic_visualize:
-            path.plot_tested_path(screen)
+            # print('button.dynamic_visualize: ', button.dynamic_visualize)
+            # print('Plot Path? ', path.test_path)
+            path.plot_test_path(screen)
             pygame.display.update()
 
         button_function_test(button, grid_map, screen, path)
