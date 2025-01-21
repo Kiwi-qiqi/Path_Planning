@@ -37,7 +37,7 @@ def random_expand_grip(grid_map):
         parent_node = grid_map.expand_grid[-1]
         if index is not None:
             parent_node = grid_map.expand_grid[index-1]
-
+                
         motion_has_explored = set()
 
         while True:
@@ -58,16 +58,12 @@ def random_expand_grip(grid_map):
                 index = grid_map.expand_grid.index(parent_node)
                 break
             
-            # if son_node != grid_map.start_point   and \
             if son_node not in grid_map.obstacles and \
                son_node not in grid_map.boundary  and \
                grid_map.verify_point(son_node)    and \
                son_node not in grid_map.expand_grid:
                 # 由于当前拓展方式随机，会陷入边角区域无法进行下一步拓展
                 # 且设置了节点不能重复
-                # if parent_node == grid_map.start_point:
-                #     break
-
                 if son_node == grid_map.end_point:
                     # print('Find End Point')
                     # grid_map.expand_grid.append(son_node)
@@ -84,14 +80,6 @@ def random_expand_grip(grid_map):
             
             else:
                 continue
-    
-    # print(len(grid_map.expand_grid), grid_map.expand_grid)
-    # for node in grid_map.expand_grid:
-    #     if node == grid_map.start_point:
-    #         print('Start Point Has Been Expaned')
-    #         grid_map.expand_grid.remove(node)
-
-
 
 
 # --------------------Button1--------------------

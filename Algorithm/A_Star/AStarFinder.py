@@ -1,9 +1,8 @@
 import os
 import sys
 import math
-import pygame
+import time
 import heapq
-
 
 # 将 Map 文件夹所在路径添加到 sys.path 中
 map_path = os.path.dirname(os.path.abspath(__file__)) + "/../../../Path_Planning/"
@@ -51,17 +50,6 @@ class AStarFinder:
         heapq.heapify(self.open_list)
         self.heapq.heappush(self.open_list, [self.start_point.g_score + self.start_point.h_score, 
                                              self.start_point])
-    
-    def calc_g_score(self, cost):
-        """
-        从起点到各个节点的实际距离
-        当节点的拓展方式不同, g值的计算不同
-        采用4-directions时, 相邻节点的距离为1
-        采用8-directions时, 相邻节点的距离为1 or sqrt(2)
-        """
-        self.g_score += cost
-    
-
 
     def verify_node(self, node):
         """
@@ -71,7 +59,6 @@ class AStarFinder:
            (node.x, node.y) not in self.boundary  and\
            (node.x, node.y) not in self.closed_set:
             # print('this node is validity')
-
             return True
         else:
             # print('this node is not validity')
@@ -126,7 +113,6 @@ class AStarFinder:
             # 四邻节点模式
             self.motions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
-
     def is_end_point(self, point):
         """
         判断当前节点是否为目标节点
@@ -135,7 +121,6 @@ class AStarFinder:
             print("is_end_point: ", (point.x, point.y), (self.end_point.x, self.end_point.y))
             return True
         
-
     def calc_h_score(self, point, selection='Manhattan'):
         """
         根据当前节点与目标节点的位置
@@ -157,7 +142,6 @@ class AStarFinder:
         """
         反向索引得到路径
         """
-        print('cell_size: ', cell_size)
         while current_node:
             self.path.append(((current_node.x+0.5) * cell_size, 
                               (current_node.y+0.5) * cell_size))
@@ -183,45 +167,43 @@ class AStarFinder:
                 cost = math.hypot(motion[0], motion[1])
                 neighbor_new_g_score = current_node.g_score + cost
 
-                if neighbor_node not in self.open_list:
+                if neighbor_node not in [node for _, node in self.open_list]:#self.open_list:
                     self.add_neighbor_node(current_node, neighbor_node, neighbor_new_g_score)
 
                 else:
+                    index = [i for i, (f_score, node) in enumerate(self.open_list) if node == neighbor_node][0]
                     self.update_neighbor_node(current_node, neighbor_node, neighbor_new_g_score)
-
             else:
                 continue
 
-    def astar_finder(self, gridmap, diagonal=True):
+    def astar_finder(self, grid_map, diagonal=False):
         self.init_heapq()
         self.start_search = True
 
         while self.start_search:
-            # print('len(self.open_list): ', len(self.open_list))
             # 当点击开始搜索时, 程序开始
             if len(self.open_list) == 0:
                 print("Unable to find a path, please check if the starting point or the end point is reachable.")
                 self.start_search = False
-
+                break
             
+            s_time = time.time()
             # 获取当前队列中总代价最小的节点
             current_node = heapq.heappop(self.open_list)[1]
             heapq.heapify(self.open_list)
+            e_time = time.time()
+            # print('minium cost node: ', e_time - s_time, ' s')
 
             self.closed_set.add(current_node)
-            # print('current_node: ', current_node)
-
             if self.is_end_point(current_node):
                 print('end_point: ', (current_node.x, current_node.y))
                 self.start_search = False
-
 
             # 根据当前节点进行direction的拓展, 查找邻节点
             self.select_diagonal(diagonal)
             self.process_neighbor_node(current_node)
 
-
-        self.get_path(current_node, gridmap.cell_size)
+        self.get_path(current_node, grid_map.cell_size)
 
 
 

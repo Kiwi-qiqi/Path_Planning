@@ -89,6 +89,7 @@ class GridMap():
     def init_boundary(self):
         # 初始化列表记录地图的边框单元格数据
         self.boundary = set()
+        self.update_boundary()
  
     def init_obstacles(self):
         # 初始化障碍物单元格数据
